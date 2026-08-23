@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Heritage Studios — Central SEO Configuration
  * =============================================
  * All SEO-critical URLs derive from NEXT_PUBLIC_SITE_URL.
@@ -8,15 +8,24 @@
 
 export const SITE_NAME = "Heritage Studios";
 
-/**
- * SITE_URL — the canonical production URL.
- * Set NEXT_PUBLIC_SITE_URL in your environment after deployment.
- * During local dev this falls back to localhost (only used for display;
- * canonical/OG URLs will correctly use the env var in production).
- */
-export const SITE_URL =
+function safeUrl(input) {
+  if (!input) return "http://localhost:3000";
+  let str = String(input).trim();
+  if (!/^https?:\/\//i.test(str)) {
+    str = `https://${str}`;
+  }
+  try {
+    const parsed = new URL(str);
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return "http://localhost:3000";
+  }
+}
+
+export const SITE_URL = safeUrl(
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+);
 
 export const DEFAULT_TITLE = `${SITE_NAME} | Premium Technology & Digital Agency`;
 

@@ -1,4 +1,4 @@
-﻿import "./globals.css";
+import "./globals.css";
 import db from "@/lib/db";
 import {
   SITE_NAME,
@@ -19,8 +19,14 @@ export const viewport = {
 // ── Root metadata ─────────────────────────────────────────────────────────
 export async function generateMetadata() {
   const settings = db.get("settings") || {};
+  let metadataBase;
+  try {
+    metadataBase = new URL(SITE_URL);
+  } catch {
+    metadataBase = new URL("http://localhost:3000");
+  }
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase,
     title: {
       default: settings.defaultSeoTitle || `${SITE_NAME} | Premium Technology & Digital Agency`,
       template: `%s | ${SITE_NAME}`,
