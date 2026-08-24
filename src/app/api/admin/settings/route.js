@@ -1,3 +1,4 @@
+import { verifySessionToken } from '@/lib/auth';
 import db from '@/lib/db';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -9,8 +10,7 @@ function checkApiAuth() {
   const cookieStore = cookies();
   const token = cookieStore.get('admin_session')?.value;
   if (!token) return false;
-  const sessions = db.get('sessions') || {};
-  return sessions[token] && new Date(sessions[token].expires) > new Date();
+  return Boolean(verifySessionToken(token));
 }
 
 export async function GET() {
