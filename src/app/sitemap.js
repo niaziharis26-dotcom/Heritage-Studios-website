@@ -1,4 +1,4 @@
-﻿import { SITE_URL } from "@/lib/siteConfig";
+import { SITE_URL } from "@/lib/siteConfig";
 import db from "@/lib/db";
 
 /**
@@ -7,6 +7,8 @@ import db from "@/lib/db";
  * Includes only public, indexable, canonical URLs.
  * All URLs derive from NEXT_PUBLIC_SITE_URL environment variable.
  */
+export const dynamic = 'force-dynamic';
+
 export default function sitemap() {
   const services = db.get("services") || [];
   const publishedServices = services.filter((s) => s.published && s.slug);

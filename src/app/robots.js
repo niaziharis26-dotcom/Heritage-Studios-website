@@ -1,10 +1,12 @@
-﻿import { SITE_URL } from "@/lib/siteConfig";
+import { SITE_URL } from "@/lib/siteConfig";
 
 /**
  * Heritage Studios — robots.txt
  * Generated via Next.js App Router Metadata API.
  * Allows all public pages; disallows admin/CMS/API routes.
  */
+export const dynamic = 'force-dynamic';
+
 export default function robots() {
   return {
     rules: [

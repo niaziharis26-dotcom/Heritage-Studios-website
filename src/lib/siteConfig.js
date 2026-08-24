@@ -2,15 +2,21 @@
  * Heritage Studios — Central SEO Configuration
  * =============================================
  * All SEO-critical URLs derive from NEXT_PUBLIC_SITE_URL.
- * After Vercel deployment, set that env var in the Vercel dashboard.
- * No other file needs to be changed.
+ * Default production URL is set to https://heritage-studios-website.vercel.app.
  */
 
 export const SITE_NAME = "Heritage Studios";
 
+const DEFAULT_PROD_URL = "https://heritage-studios-website.vercel.app";
+
 function safeUrl(input) {
-  if (!input) return "http://localhost:3000";
+  if (!input) {
+    return process.env.NODE_ENV === "development" ? "http://localhost:3000" : DEFAULT_PROD_URL;
+  }
   let str = String(input).trim();
+  if (str === "http://localhost:3000" && process.env.NODE_ENV !== "development") {
+    return DEFAULT_PROD_URL;
+  }
   if (!/^https?:\/\//i.test(str)) {
     str = `https://${str}`;
   }
@@ -18,13 +24,13 @@ function safeUrl(input) {
     const parsed = new URL(str);
     return parsed.toString().replace(/\/+$/, "");
   } catch {
-    return "http://localhost:3000";
+    return DEFAULT_PROD_URL;
   }
 }
 
 export const SITE_URL = safeUrl(
   process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : DEFAULT_PROD_URL)
 );
 
 export const DEFAULT_TITLE = `${SITE_NAME} | Premium Technology & Digital Agency`;
