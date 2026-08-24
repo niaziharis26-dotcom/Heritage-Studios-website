@@ -411,8 +411,13 @@ class Database {
 
   verifyAdmin(username, password) {
     this.load();
-    const admin = this.data.admin;
-    if (admin.username === username) {
+    if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        return true;
+      }
+    }
+    const admin = this.data.admin || {};
+    if (admin.username === username && admin.passwordHash) {
       return verifyPassword(password, admin.passwordHash);
     }
     return false;
