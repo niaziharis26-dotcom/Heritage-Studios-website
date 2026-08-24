@@ -1,10 +1,12 @@
 import db from '@/lib/db';
-import { cookies } from 'next/headers';
+import { createSessionToken } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    const { username, password } = await request.json();
+    const body = await request.json();
+    const username = body.username ? String(body.username).trim() : '';
+    const password = body.password ? String(body.password).trim() : '';
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password are required.' }, { status: 400 });
@@ -16,30 +18,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid admin credentials.' }, { status: 401 });
     }
 
-    // Create session token
-    const token = 'sess_' + Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
-    const sessions = db.get('sessions') || {};
-    
-    // Set 24 hour expiry
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 24);
+    // Create stateless signed HMAC session token
+    const { token, expires } = createSessionToken(username);
 
-    sessions[token] = {
-      username,
-      expires: expires.toISOString()
-    };
-    db.set('sessions', sessions);
-
-    // Save token in cookie
-    const cookieStore = cookies();
-    cookieStore.set('admin_session', token, {
+    // Attach Set-Cookie header directly to NextResponse
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('admin_session', token, {
       httpOnly: true,
+      sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      expires: expires,
+      expires,
       path: '/'
     });
 
-    return NextResponse.json({ success: true });
+    return response;
   } catch (err) {
     console.error('Login API error:', err);
     return NextResponse.json({ error: 'Authentication processing failed.' }, { status: 500 });
