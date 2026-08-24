@@ -1,7 +1,7 @@
 {
   "admin": {
-    "username": "admin",
-    "passwordHash": "f52821b0401440738a5873d1b05b18f5:e8886cdbe628e4a545a011db103650c6ea292f0a971fee2be6057e2b63ce42cf528cc2c83feff81c30c12a381fca9631534eef562f51651cbcca9b4ec8a1efcd"
+    "username": "haris",
+    "passwordHash": "8ac4c2ed57bd4f474d90651fe3e383aa:19c30b54c634f6c65bf16612b15472e6b61d04daffe6d9ccb4fb660be4f84952405ce1ff8532dccb341c9039d4d0c96c4071bca40a3bf9ae9a3350bb82793c55"
   },
   "settings": {
     "companyName": "Heritage Studios",

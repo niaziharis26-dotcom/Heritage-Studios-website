@@ -277,8 +277,8 @@ const DEFAULT_SETTINGS = {
 
 const INITIAL_DB = {
   admin: {
-    username: "admin",
-    passwordHash: hashPassword("admin123") // Default credentials: admin / admin123
+    username: "haris",
+    passwordHash: hashPassword("Asusrogphone123") // Default credentials: haris / Asusrogphone123
   },
   navigation: {
     links: [
