@@ -416,6 +416,26 @@ class Database {
     try {
       const activeFile = getDbFilePath();
       fs.writeFileSync(activeFile, JSON.stringify(this.data, null, 2), 'utf8');
+
+      // Async write to MongoDB Atlas
+      if (process.env.MONGODB_URI) {
+        const { MongoClient } = require('mongodb');
+        const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 5000 });
+        client.connect().then(async () => {
+          const cleanData = JSON.parse(JSON.stringify(this.data || {}));
+          if (cleanData.revisions) {
+            cleanData.revisions = cleanData.revisions.slice(-3); // Prune revisions to keep database size light
+          }
+          await client.db('heritage_studios').collection('database').updateOne(
+            { _id: 'main' },
+            { $set: cleanData },
+            { upsert: true }
+          );
+          client.close();
+        }).catch(err => {
+          console.error("Async MongoDB save error:", err);
+        });
+      }
     } catch (e) {
       console.error("Failed to save database.json", e);
     }
@@ -586,4 +606,29 @@ class Database {
   }
 }
 
-module.exports = new Database();
+const dbInstance = new Database();
+
+// Startup sync: Load database.json from MongoDB Atlas to local tmp path if MONGODB_URI is set
+if (process.env.MONGODB_URI) {
+  try {
+    const { MongoClient } = require('mongodb');
+    const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 2000 });
+    client.connect().then(async () => {
+      const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
+      if (doc) {
+        const { _id, ...rest } = doc;
+        fs.writeFileSync(TMP_DB_FILE, JSON.stringify(rest, null, 2), 'utf8');
+        dbInstance.data = null; // force reload data from updated file
+        dbInstance.load();
+        console.log("Successfully fetched latest database from MongoDB Atlas on startup!");
+      }
+      client.close();
+    }).catch(err => {
+      console.warn("MongoDB startup sync warning (using local fallback):", err.message);
+    });
+  } catch (e) {
+    console.error("MongoDB startup sync error:", e);
+  }
+}
+
+module.exports = dbInstance;
