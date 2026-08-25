@@ -444,16 +444,17 @@ class Database {
     return this.data;
   }
 
-  save() {
+  async save() {
     try {
       const activeFile = getDbFilePath();
       fs.writeFileSync(activeFile, JSON.stringify(this.data, null, 2), 'utf8');
 
-      // Async write to MongoDB Atlas
+      // Awaited write to MongoDB Atlas (ensures serverless Lambdas don't freeze mid-write)
       if (process.env.MONGODB_URI) {
-        const { MongoClient } = require('mongodb');
-        const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 5000 });
-        client.connect().then(async () => {
+        try {
+          const { MongoClient } = require('mongodb');
+          const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 5000 });
+          await client.connect();
           const cleanData = JSON.parse(JSON.stringify(this.data || {}));
           if (cleanData.revisions) {
             cleanData.revisions = cleanData.revisions.slice(-3); // Prune revisions to keep database size light
@@ -463,10 +464,11 @@ class Database {
             { $set: cleanData },
             { upsert: true }
           );
-          client.close();
-        }).catch(err => {
-          console.error("Async MongoDB save error:", err);
-        });
+          await client.close();
+          console.log("Successfully saved updated database to MongoDB Atlas!");
+        } catch (err) {
+          console.error("MongoDB save error:", err);
+        }
       }
     } catch (e) {
       console.error("Failed to save database.json", e);
@@ -540,10 +542,10 @@ class Database {
     return this.data[key];
   }
 
-  set(key, val) {
+  async set(key, val) {
     this.load();
     this.data[key] = val;
-    this.save();
+    await this.save();
     return val;
   }
 

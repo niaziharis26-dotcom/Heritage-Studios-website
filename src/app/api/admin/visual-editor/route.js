@@ -110,12 +110,12 @@ export async function POST(request) {
           }
         }
         
-        db.set('components', components);
-        db.set('settings', settings);
-        db.set('navigation', navigation);
-        db.set('footer', footer);
-        db.set('services', services);
-        db.set('drafts', {});
+        await db.set('components', components);
+        await db.set('settings', settings);
+        await db.set('navigation', navigation);
+        await db.set('footer', footer);
+        await db.set('services', services);
+        await db.set('drafts', {});
 
         // Create revision snapshot
         createRevision('admin', 'Manual publish', { components, navigation, footer, settings, services });
