@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { COMPONENT_REGISTRY } from '@/lib/componentRegistry';
+import { COMPONENT_REGISTRY, PAGE_SECTIONS } from '@/lib/componentRegistry';
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const S = {
@@ -403,8 +403,9 @@ export default function VisualEditorPage() {
 
   const moveSection = async (idx, dir) => {
     const page = pagesList.find(p => p.id === activePage);
-    if (!page) return;
-    const sections = [...(page.sections || [])];
+    const defaultSecs = PAGE_SECTIONS[activePage] || PAGE_SECTIONS['home'] || [];
+    const currentSections = (page?.sections && page.sections.length > 0) ? page.sections : defaultSecs;
+    const sections = [...currentSections];
     const targetIdx = idx + dir;
     if (targetIdx < 0 || targetIdx >= sections.length) return;
     
@@ -705,31 +706,36 @@ export default function VisualEditorPage() {
                 )}
 
                 {/* Render Sections list with Up/Down/Duplicate/Delete controls */}
-                {(page?.sections || []).length === 0 && (
-                  <p style={{ color: '#4b5563', fontSize: '0.8rem', textAlign: 'center', margin: '2rem 0' }}>This page is rendered with a static template or has no blocks. Select blocks from editing tab.</p>
-                )}
+                {(() => {
+                  const defaultSecs = PAGE_SECTIONS[activePage] || PAGE_SECTIONS['home'] || [];
+                  const activeSections = (page?.sections && page.sections.length > 0) ? page.sections : defaultSecs;
+                  
+                  if (activeSections.length === 0) {
+                    return <p style={{ color: '#4b5563', fontSize: '0.8rem', textAlign: 'center', margin: '2rem 0' }}>No sections added to this page yet. Select blocks from adding menu.</p>;
+                  }
 
-                {(page?.sections || []).map((secId, i) => {
-                  const isSel = selectedSection === secId;
-                  const type = secId.split('_')[0];
-                  const blockInfo = COMPONENT_REGISTRY[type] || { name: secId, icon: '📦' };
-                  return (
-                    <div key={secId} style={{ ...S.sectionRow(isSel), flexDirection: 'column', alignItems: 'stretch', padding: '0.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div onClick={() => setSelectedSection(secId)} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', flex: 1 }}>
-                          <span>{blockInfo.icon}</span>
-                          <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{blockInfo.name}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.2rem' }}>
-                          <button onClick={() => moveSection(i, -1)} disabled={i === 0} style={S.iconBtn}>▲</button>
-                          <button onClick={() => moveSection(i, 1)} disabled={i === (page.sections.length - 1)} style={S.iconBtn}>▼</button>
-                          <button onClick={() => duplicateSection(secId)} style={{ ...S.iconBtn, color: '#34d399' }}>❐</button>
-                          <button onClick={() => deleteSection(secId)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
+                  return activeSections.map((secId, i) => {
+                    const isSel = selectedSection === secId;
+                    const type = secId.split('_')[0];
+                    const blockInfo = COMPONENT_REGISTRY[type] || { name: secId, icon: '📦' };
+                    return (
+                      <div key={secId} style={{ ...S.sectionRow(isSel), flexDirection: 'column', alignItems: 'stretch', padding: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div onClick={() => setSelectedSection(secId)} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', flex: 1 }}>
+                            <span>{blockInfo.icon}</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{blockInfo.name}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.2rem' }}>
+                            <button onClick={() => moveSection(i, -1)} disabled={i === 0} style={S.iconBtn}>▲</button>
+                            <button onClick={() => moveSection(i, 1)} disabled={i === (activeSections.length - 1)} style={S.iconBtn}>▼</button>
+                            <button onClick={() => duplicateSection(secId)} style={{ ...S.iconBtn, color: '#34d399' }}>❐</button>
+                            <button onClick={() => deleteSection(secId)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </div>
             )}
 

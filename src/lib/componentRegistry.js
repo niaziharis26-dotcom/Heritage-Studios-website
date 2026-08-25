@@ -348,67 +348,69 @@ export const COMPONENT_REGISTRY = {
     canReorder: true,
   },
 
-  // ── Legacy Component Pages ────────────────────────────────────────────────
-  aboutPage: {
-    name: 'About Page',
-    icon: '📖',
-    description: 'Legacy page content for the About page',
-    page: 'about',
-    category: 'page',
+  dashboardShowcase: {
+    name: 'Dashboard Showcase',
+    icon: '📊',
+    description: 'Analytics dashboard highlight block',
+    category: 'general',
     fields: [
-      { id: 'heroTitle', label: 'Hero Title', type: 'text' },
-      { id: 'heroSubtitle', label: 'Hero Subtitle', type: 'text' },
-      { id: 'missionTitle', label: 'Mission Title', type: 'text' },
-      { id: 'missionDescription', label: 'Mission Description', type: 'textarea' },
+      { id: 'heading', label: 'Section Heading', type: 'text', placeholder: 'We Build High-Performance Digital Systems' },
+      { id: 'subheading', label: 'Subheading', type: 'textarea', placeholder: 'Not just websites - custom software...' },
     ],
-    arrayField: {
-      key: 'values',
-      label: 'Core Values',
-      addLabel: 'Add Value',
-      fields: [
-        { id: 'title', label: 'Value Title', type: 'text' },
-        { id: 'desc', label: 'Value Description', type: 'textarea' },
-      ],
-    },
+    canHide: true,
+    canReorder: true,
   },
 
-  servicesPage: {
-    name: 'Services Landing Page',
-    icon: '🛠️',
-    description: 'Legacy page content for the Services index page',
-    page: 'services',
-    category: 'page',
+  projectsSection: {
+    name: 'Projects / Portfolio Grid',
+    icon: '🗂️',
+    description: 'Featured projects showcase grid',
+    category: 'general',
     fields: [
-      { id: 'heroTitle', label: 'Hero Title', type: 'text' },
-      { id: 'heroSubtitle', label: 'Hero Subtitle', type: 'text' },
-      { id: 'ctaTitle', label: 'CTA Title', type: 'text' },
-      { id: 'ctaDescription', label: 'CTA Description', type: 'textarea' },
+      { id: 'heading', label: 'Section Heading', type: 'text', placeholder: 'Featured Projects' },
+      { id: 'subheading', label: 'Subheading', type: 'textarea', placeholder: 'A showcase of our recent bespoke designs and technical engineering.' },
+      { id: 'ctaText', label: 'Button Text', type: 'text', placeholder: 'View All Projects' },
+      { id: 'ctaUrl', label: 'Button URL', type: 'url', placeholder: '/projects' },
     ],
+    canHide: true,
+    canReorder: true,
   },
 
-  contactPage: {
-    name: 'Contact Page',
-    icon: '📨',
-    description: 'Legacy page content for the Contact page',
-    page: 'contact',
-    category: 'page',
+  reviewsSection: {
+    name: 'Client Reviews Section',
+    icon: '⭐',
+    description: 'Section heading + client reviews grid',
+    category: 'general',
     fields: [
-      { id: 'heroTitle', label: 'Hero Title', type: 'text' },
-      { id: 'heroSubtitle', label: 'Hero Subtitle', type: 'text' },
-      { id: 'formTitle', label: 'Form Title', type: 'text' },
-      { id: 'formDescription', label: 'Form Description', type: 'textarea' },
+      { id: 'heading', label: 'Section Heading', type: 'text', placeholder: 'What Our Clients Say' },
+      { id: 'subheading', label: 'Subheading', type: 'text', placeholder: 'Real feedback from real clients.' },
     ],
-  }
+    canHide: true,
+    canReorder: true,
+  },
+
+  clientBrands: {
+    name: 'Client Brands Marquee',
+    icon: '🏢',
+    description: 'Scrolling client logos / trusted brands strip',
+    category: 'general',
+    fields: [
+      { id: 'heading', label: 'Eyebrow Text', type: 'text', placeholder: 'Trusted Collaborations' },
+      { id: 'subheading', label: 'Subheading', type: 'text', placeholder: "Brands, stores, and tech platforms we've built" },
+    ],
+    canHide: true,
+    canReorder: true,
+  },
 };
 
 export const PAGE_SECTIONS = {
-  home: ['hero', 'capabilities', 'servicesSection', 'dashboardShowcase', 'process', 'projectsSection', 'reviewsSection', 'cta', 'contactSection'],
-  about: ['aboutPage'],
-  services: ['servicesPage'],
-  contact: ['contactPage'],
-  projects: [],
-  reviews: [],
-  'social-media': [],
+  home: ['hero', 'capabilities', 'servicesSection', 'dashboardShowcase', 'process', 'projectsSection', 'clientBrands', 'reviewsSection', 'cta', 'contactSection'],
+  about: ['hero', 'capabilities', 'process', 'cta', 'contactSection'],
+  services: ['hero', 'servicesSection', 'process', 'cta', 'contactSection'],
+  projects: ['hero', 'projectsSection', 'cta', 'contactSection'],
+  reviews: ['hero', 'reviewsSection', 'cta', 'contactSection'],
+  contact: ['hero', 'contactSection'],
+  'social-media': ['hero', 'cta'],
 };
 
 export function getRegistryForPage(pageId) {
