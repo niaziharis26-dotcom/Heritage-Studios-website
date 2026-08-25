@@ -421,6 +421,68 @@ class Database {
     }
   }
 
+  async syncToGithub() {
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) return false;
+
+    const repo = process.env.GITHUB_REPO || 'niaziharis26-dotcom/Heritage-Studios-website';
+    const filePath = 'database.json';
+    const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+
+    try {
+      const getRes = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Heritage-Studios-CMS'
+        },
+        cache: 'no-store'
+      });
+
+      if (!getRes.ok) {
+        console.error('GitHub API get SHA error:', await getRes.text());
+        return false;
+      }
+
+      const getJson = await getRes.json();
+      const sha = getJson.sha;
+
+      const cleanData = JSON.parse(JSON.stringify(this.data || {}));
+      if (cleanData.revisions) {
+        cleanData.revisions = cleanData.revisions.slice(-3);
+      }
+      const jsonString = JSON.stringify(cleanData, null, 2);
+      const contentB64 = Buffer.from(jsonString).toString('base64');
+
+      const putRes = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Heritage-Studios-CMS'
+        },
+        body: JSON.stringify({
+          message: 'cms: sync live website edits from admin panel',
+          content: contentB64,
+          sha,
+          branch: 'main'
+        })
+      });
+
+      if (putRes.ok) {
+        console.log('Successfully committed database.json to GitHub repository!');
+        return true;
+      } else {
+        console.error('GitHub API commit error:', await putRes.text());
+        return false;
+      }
+    } catch (err) {
+      console.error('Failed to sync database.json to GitHub:', err);
+      return false;
+    }
+  }
+
   get(key) {
     this.load();
     return this.data[key];

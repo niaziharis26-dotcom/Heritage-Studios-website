@@ -27,6 +27,7 @@ export async function POST(request) {
         return NextResponse.json({ error: 'Invalid reorder array.' }, { status: 400 });
       }
       db.set('homepageSections', sectionsList);
+      await db.syncToGithub();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true });
     }
@@ -38,6 +39,7 @@ export async function POST(request) {
       }
       components[sectionId].visible = !components[sectionId].visible;
       db.set('components', components);
+      await db.syncToGithub();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true, visible: components[sectionId].visible });
     }
@@ -49,6 +51,7 @@ export async function POST(request) {
         ...componentData
       };
       db.set('components', components);
+      await db.syncToGithub();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true });
     }

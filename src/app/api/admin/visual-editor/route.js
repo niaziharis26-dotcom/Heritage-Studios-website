@@ -121,6 +121,8 @@ export async function POST(request) {
         createRevision('admin', 'Manual publish', { components, navigation, footer, settings, services });
         logAction('admin', 'published_all', 'Published all drafts and edits to live site');
         
+        await db.syncToGithub();
+
         const { revalidatePath } = require('next/cache');
         revalidatePath('/', 'layout');
         
