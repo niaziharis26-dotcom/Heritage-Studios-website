@@ -2,7 +2,26 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const DB_FILE = path.join(process.cwd(), 'database.json');
+const ORIGINAL_DB_FILE = path.join(process.cwd(), 'database.json');
+const TMP_DB_FILE = path.join('/tmp', 'database.json');
+
+function getDbFilePath() {
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    try {
+      if (!fs.existsSync(TMP_DB_FILE)) {
+        if (fs.existsSync(ORIGINAL_DB_FILE)) {
+          fs.copyFileSync(ORIGINAL_DB_FILE, TMP_DB_FILE);
+        }
+      }
+      return TMP_DB_FILE;
+    } catch (e) {
+      return ORIGINAL_DB_FILE;
+    }
+  }
+  return ORIGINAL_DB_FILE;
+}
+
+let DB_FILE = getDbFilePath();
 
 // Secure password helper using built-in Node crypto
 function hashPassword(password) {
@@ -356,8 +375,9 @@ class Database {
 
   load() {
     try {
-      if (fs.existsSync(DB_FILE)) {
-        const fileContent = fs.readFileSync(DB_FILE, 'utf8');
+      const activeFile = getDbFilePath();
+      if (fs.existsSync(activeFile)) {
+        const fileContent = fs.readFileSync(activeFile, 'utf8');
         this.data = JSON.parse(fileContent);
         // Merge in missing default components
         if (!this.data.components) this.data.components = {};
@@ -378,6 +398,9 @@ class Database {
           this.data.pages = INITIAL_DB.pages;
         }
         if (!this.data.globalStyles) this.data.globalStyles = INITIAL_DB.globalStyles;
+      } else if (fs.existsSync(ORIGINAL_DB_FILE)) {
+        const fileContent = fs.readFileSync(ORIGINAL_DB_FILE, 'utf8');
+        this.data = JSON.parse(fileContent);
       } else {
         this.data = JSON.parse(JSON.stringify(INITIAL_DB));
         this.save();
@@ -391,7 +414,8 @@ class Database {
 
   save() {
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf8');
+      const activeFile = getDbFilePath();
+      fs.writeFileSync(activeFile, JSON.stringify(this.data, null, 2), 'utf8');
     } catch (e) {
       console.error("Failed to save database.json", e);
     }
