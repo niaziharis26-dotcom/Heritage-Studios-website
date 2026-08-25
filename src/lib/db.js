@@ -5,10 +5,17 @@ const crypto = require('crypto');
 const ORIGINAL_DB_FILE = path.join(process.cwd(), 'database.json');
 const TMP_DB_FILE = path.join('/tmp', 'database.json');
 
+let lastSyncTime = 0;
+const SYNC_INTERVAL = 10000; // 10 seconds cache TTL
+
 function getDbFilePath() {
   if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
     try {
-      if (!fs.existsSync(TMP_DB_FILE)) {
+      const now = Date.now();
+      const needsSync = !fs.existsSync(TMP_DB_FILE) || (now - lastSyncTime > SYNC_INTERVAL);
+
+      if (needsSync) {
+        lastSyncTime = now;
         if (process.env.MONGODB_URI) {
           try {
             const { execSync } = require('child_process');
