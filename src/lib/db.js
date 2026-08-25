@@ -9,8 +9,33 @@ function getDbFilePath() {
   if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
     try {
       if (!fs.existsSync(TMP_DB_FILE)) {
-        if (fs.existsSync(ORIGINAL_DB_FILE)) {
-          fs.copyFileSync(ORIGINAL_DB_FILE, TMP_DB_FILE);
+        if (process.env.MONGODB_URI) {
+          try {
+            const { execSync } = require('child_process');
+            execSync(`node -e "
+              const fs = require('fs');
+              const { MongoClient } = require('mongodb');
+              const client = new MongoClient('${process.env.MONGODB_URI}', { connectTimeoutMS: 3000 });
+              client.connect().then(async () => {
+                const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
+                if (doc) {
+                  const { _id, ...rest } = doc;
+                  fs.writeFileSync('${TMP_DB_FILE.replace(/\\/g, '\\\\')}', JSON.stringify(rest, null, 2), 'utf8');
+                }
+                client.close();
+              }).catch(() => {
+                process.exit(1);
+              });
+            "`);
+          } catch (e) {
+            console.warn("MongoDB startup sync failed, falling back to local database.json:", e.message);
+          }
+        }
+
+        if (!fs.existsSync(TMP_DB_FILE)) {
+          if (fs.existsSync(ORIGINAL_DB_FILE)) {
+            fs.copyFileSync(ORIGINAL_DB_FILE, TMP_DB_FILE);
+          }
         }
       }
       return TMP_DB_FILE;
