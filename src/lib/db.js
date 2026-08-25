@@ -20,19 +20,22 @@ function getDbFilePath() {
           try {
             const { execSync } = require('child_process');
             execSync(`node -e "
-              const fs = require('fs');
-              const { MongoClient } = require('mongodb');
-              const client = new MongoClient('${process.env.MONGODB_URI}', { connectTimeoutMS: 3000 });
-              client.connect().then(async () => {
-                const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
-                if (doc) {
-                  const { _id, ...rest } = doc;
-                  fs.writeFileSync('${TMP_DB_FILE.replace(/\\/g, '\\\\')}', JSON.stringify(rest, null, 2), 'utf8');
+              (async () => {
+                try {
+                  const fs = require('fs');
+                  const { MongoClient } = require('mongodb');
+                  const client = new MongoClient('${process.env.MONGODB_URI}', { connectTimeoutMS: 4000 });
+                  await client.connect();
+                  const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
+                  if (doc) {
+                    const { _id, ...rest } = doc;
+                    fs.writeFileSync('${TMP_DB_FILE.replace(/\\/g, '\\\\')}', JSON.stringify(rest, null, 2), 'utf8');
+                  }
+                  await client.close();
+                } catch (e) {
+                  process.exit(1);
                 }
-                client.close();
-              }).catch(() => {
-                process.exit(1);
-              });
+              })();
             "`);
           } catch (e) {
             console.warn("MongoDB startup sync failed, falling back to local database.json:", e.message);
