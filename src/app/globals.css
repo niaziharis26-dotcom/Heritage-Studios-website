@@ -1046,10 +1046,30 @@ select.form-input   { cursor: pointer; appearance: none; background-image: url("
 .service-card-ed:hover .service-arrow { opacity: 1; transform: translateY(0); }
 
 /* Projects Asymmetric */
-.projects-grid-asym {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-4);
+@media (max-width: 1023px) {
+  .projects-grid-asym {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .projects-grid-asym::-webkit-scrollbar { display: none; }
+  .projects-grid-asym > * {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+  }
+}
+@media (min-width: 1024px) {
+  .projects-grid-asym {
+    display: grid;
+    gap: var(--sp-4);
+  }
 }
 @media (min-width: 1024px) {
   .projects-grid-asym {
@@ -1703,7 +1723,7 @@ select.form-input   { cursor: pointer; appearance: none; background-image: url("
   margin-top: var(--sp-12);
 }
 @media (max-width: 1024px) { .hp-services-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px)  { .hp-services-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .hp-services-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 1rem; padding-bottom: 1rem; scrollbar-width: none; margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem; } .hp-services-grid::-webkit-scrollbar { display: none; } .hp-services-grid > * { flex: 0 0 85%; scroll-snap-align: center; } }
 
 .hp-svc-card {
   display: flex;

@@ -26,7 +26,7 @@
       "id": "custom-web-development",
       "name": "Custom Website Development",
       "slug": "custom-web-development",
-      "icon": "💻",
+      "icon": "/icons/services/Website_design_service_icon_2K_202608252334.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Custom websites, web applications, dashboards, APIs, portals and scalable digital solutions.",
       "heroTitle": "Custom Engineered Website & Web Application Development",
@@ -253,13 +253,14 @@
         "description": "Bespoke custom website development — React, Next.js, Laravel, Node.js. Business websites, web apps, SaaS, portals and eCommerce."
       },
       "benefits.1": "Built with modern, scalable frameworks (React, Next.js, Laravel)",
-      "benefits.0": "Tailored to your exact brand identity and business goals"
+      "benefits.0": "Tailored to your exact brand identity and business goals",
+      "image": "/icons/services/Website_design_service_icon_2K_202608252334.jpeg"
     },
     {
       "id": "startup-launch",
       "name": "Startup Launch for Brands / Ecommerce Stores",
       "slug": "startup-launch",
-      "icon": "🚀",
+      "icon": "/icons/services/Software_development_3D_service_._202608252330.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Complete end-to-end launch package for new brands and e-commerce stores.",
       "heroTitle": "Startup Launch for Brands & E-commerce Stores",
@@ -333,13 +334,14 @@
       "published": true,
       "sortOrder": 1,
       "benefits.0": "Turnkey brand launch",
-      "features.0": "🎨\nBrand Identity & Strategy"
+      "features.0": "🎨\nBrand Identity & Strategy",
+      "image": "/icons/services/Software_development_3D_service_._202608252330.jpeg"
     },
     {
       "id": "wordpress",
       "name": "WordPress Services",
       "slug": "wordpress",
-      "icon": "⚡",
+      "icon": "/icons/services/WordPress_website_development_se._2K_202608252335.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "WordPress websites, WooCommerce, Elementor, bug fixes, speed optimisation, security, maintenance and custom functionality.",
       "heroTitle": "Professional WordPress Development, Fixes & Maintenance",
@@ -531,13 +533,14 @@
       "seo": {
         "title": "WordPress Services — Development, Bug Fixes & Maintenance | Heritage Studios",
         "description": "WordPress development, WooCommerce, Elementor, bug fixes, speed optimisation, security, and monthly maintenance."
-      }
+      },
+      "image": "/icons/services/WordPress_website_development_se._2K_202608252335.jpeg"
     },
     {
       "id": "shopify",
       "name": "Shopify Services",
       "slug": "shopify",
-      "icon": "🛍️",
+      "icon": "/icons/services/Shopify_e-commerce_development_s._2K_202608252340.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Shopify store development, customisation, Liquid development, integrations, optimisation and eCommerce solutions.",
       "heroTitle": "Professional Shopify Store Development & Customisation",
@@ -700,13 +703,14 @@
       "seo": {
         "title": "Shopify Store Development & Customisation | Heritage Studios",
         "description": "Shopify store development, custom Liquid coding, theme customisation, bug fixes, speed optimisation, and migration."
-      }
+      },
+      "image": "/icons/services/Shopify_e-commerce_development_s._2K_202608252340.jpeg"
     },
     {
       "id": "ads-management",
       "name": "Paid Advertising & Marketing",
       "slug": "ads-management",
-      "icon": "📈",
+      "icon": "/icons/services/Online_marketplace_e-commerce_icon_2K_202608252334.jpeg",
       "category": "Software & Technology",
       "shortDescription": "Meta, Google, TikTok, YouTube ads, retargeting, lead generation, tracking and campaign management.",
       "heroTitle": "Data-Driven Paid Advertising & Performance Marketing",
@@ -895,13 +899,14 @@
       "seo": {
         "title": "Paid Advertising & Marketing Services | Heritage Studios",
         "description": "Meta Ads, Google Ads, TikTok Ads, retargeting, lead generation, conversion tracking, and performance marketing."
-      }
+      },
+      "image": "/icons/services/Online_marketplace_e-commerce_icon_2K_202608252334.jpeg"
     },
     {
       "id": "video-editing",
       "name": "Video Editing & Digital Media",
       "slug": "video-editing",
-      "icon": "🎬",
+      "icon": "/icons/services/Video_editing_service_icon_2K_202608252338.jpeg",
       "category": "Creative",
       "shortDescription": "Reels, YouTube videos, ads, corporate videos, motion graphics, VFX, 3D, audio and post-production.",
       "heroTitle": "Professional Post-Production & Video Editing",
@@ -1048,14 +1053,15 @@
       "seo": {
         "title": "Professional Video Editing Services | Heritage Studios",
         "description": "Video editing services — Reels, TikTok, YouTube videos, video ads, motion graphics, 3D animation, and audio post-production."
-      }
+      },
+      "image": "/icons/services/Video_editing_service_icon_2K_202608252338.jpeg"
     },
     {
       "id": "wordpress-development",
       "name": "WordPress Website Development",
       "slug": "wordpress-development",
       "parentService": "wordpress",
-      "icon": "🌐",
+      "icon": "/icons/services/WordPress_website_development_se._2K_202608252345.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Custom WordPress website development, Elementor builds, WooCommerce, and theme customisation.",
       "heroTitle": "Custom WordPress Website Development",
@@ -1121,7 +1127,8 @@
         }
       ],
       "published": true,
-      "sortOrder": 6
+      "sortOrder": 6,
+      "image": "/icons/services/WordPress_website_development_se._2K_202608252345.jpeg"
     },
     {
       "id": "wordpress-fixes",
@@ -1258,7 +1265,7 @@
       "id": "daraz-seller-account",
       "name": "Daraz Seller Account",
       "slug": "daraz-seller-account",
-      "icon": "📦",
+      "icon": "/icons/services/Online_marketplace_e-commerce_icon_2K_202608252334.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Seller account setup, product listings, store optimization, and Daraz SEO.",
       "heroTitle": "Daraz Seller Account Setup & Store Optimization",
@@ -1327,14 +1334,15 @@
         }
       ],
       "published": true,
-      "sortOrder": 8
+      "sortOrder": 8,
+      "image": "/icons/services/Online_marketplace_e-commerce_icon_2K_202608252334.jpeg"
     },
     {
       "id": "shopify-store-development",
       "name": "Shopify Store Development",
       "slug": "shopify-store-development",
       "parentService": "shopify",
-      "icon": "🛒",
+      "icon": "/icons/services/Shopify_e-commerce_development_s._2K_202608252340.jpeg",
       "category": "Web & E-commerce",
       "shortDescription": "Complete Shopify online store design, setup, theme customisation, and launch.",
       "heroTitle": "High-Converting Shopify Store Development",
@@ -1388,13 +1396,14 @@
         }
       ],
       "published": true,
-      "sortOrder": 9
+      "sortOrder": 9,
+      "image": "/icons/services/Shopify_e-commerce_development_s._2K_202608252340.jpeg"
     },
     {
       "id": "ai-chatbot",
       "name": "AI Chatbot",
       "slug": "ai-chatbot",
-      "icon": "🤖",
+      "icon": "/icons/services/AI_chatbot_service_icon_2K_202608252334.jpeg",
       "category": "Software & Technology",
       "shortDescription": "Custom AI chatbots for website, e-commerce, customer support, and lead generation.",
       "heroTitle": "Intelligent AI Chatbots & Customer Automation",
@@ -1465,7 +1474,8 @@
         }
       ],
       "published": true,
-      "sortOrder": 9
+      "sortOrder": 9,
+      "image": "/icons/services/AI_chatbot_service_icon_2K_202608252334.jpeg"
     },
     {
       "id": "shopify-customization",
@@ -1516,7 +1526,7 @@
       "id": "mobile-apps",
       "name": "Mobile Apps",
       "slug": "mobile-apps",
-      "icon": "📱",
+      "icon": "/icons/services/Smartphone_app_development_icon_._202608252335.jpeg",
       "category": "Software & Technology",
       "shortDescription": "Android, iOS, and cross-platform mobile app development for businesses and e-commerce.",
       "heroTitle": "Native & Cross-Platform Mobile App Development",
@@ -1586,7 +1596,8 @@
         }
       ],
       "published": true,
-      "sortOrder": 10
+      "sortOrder": 10,
+      "image": "/icons/services/Smartphone_app_development_icon_._202608252335.jpeg"
     },
     {
       "id": "shopify-bug-fixes",
@@ -1645,7 +1656,7 @@
       "id": "error-solution",
       "name": "Error Solution",
       "slug": "error-solution",
-      "icon": "🛠️",
+      "icon": "/icons/services/Software_development_3D_service_._202608252333.jpeg",
       "category": "Software & Technology",
       "shortDescription": "Technical troubleshooting, website errors, database recovery, and speed fixes.",
       "heroTitle": "Technical Error Solutions & Troubleshooting",
@@ -1716,7 +1727,8 @@
         }
       ],
       "published": true,
-      "sortOrder": 11
+      "sortOrder": 11,
+      "image": "/icons/services/Software_development_3D_service_._202608252333.jpeg"
     },
     {
       "id": "meta-ads",
@@ -1930,7 +1942,7 @@
       "slug": "aura-ecommerce",
       "serviceId": "custom-web-development",
       "category": "Web & E-commerce",
-      "image": "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=800",
+      "image": "/projects/Electronics_e-commerce_website_d._2K_202608232033.jpeg",
       "description": "Bespoke custom-coded Headless storefront for a premium fragrance brand. Built with Next.js, React & Stripe API.",
       "technologies": [
         "Next.js",
@@ -1950,7 +1962,7 @@
       "slug": "vanguard-dashboard",
       "serviceId": "custom-web-development",
       "category": "Software & Technology",
-      "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800",
+      "image": "/projects/Software_website_portfolio_thumb._2K_202608232028.jpeg",
       "description": "Full-stack analytics portal with real-time WebSocket data streams, customer activity logs, and automated PDF reporting.",
       "technologies": [
         "React",
@@ -1970,7 +1982,7 @@
       "slug": "nexus-media-portal",
       "serviceId": "wordpress",
       "category": "Web & E-commerce",
-      "image": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=800",
+      "image": "/projects/Digital_agency_website_portfolio._2K_202608232037.jpeg",
       "description": "Bespoke WordPress theme engineered without bloated page builders. Includes custom Gutenberg blocks and security hardening.",
       "technologies": [
         "WordPress",
@@ -1990,7 +2002,7 @@
       "slug": "elevate-real-estate",
       "serviceId": "wordpress",
       "category": "Web & E-commerce",
-      "image": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=800",
+      "image": "/projects/Real_estate_website_portfolio_de._202608232032.jpeg",
       "description": "Custom WordPress portal for high-end luxury real estate, featuring automated property synchronization & interactive map search.",
       "technologies": [
         "WordPress",
@@ -2010,7 +2022,7 @@
       "slug": "luxe-beauty-shopify",
       "serviceId": "shopify",
       "category": "Web & E-commerce",
-      "image": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800",
+      "image": "/projects/Plant_e-commerce_website_showcase_2K_202608232027.jpeg",
       "description": "Custom Shopify Liquid storefront featuring multi-currency checkout, custom bundle builder, and automated review sync.",
       "technologies": [
         "Shopify Liquid",
@@ -2030,7 +2042,7 @@
       "slug": "apex-apparel-store",
       "serviceId": "shopify",
       "category": "Web & E-commerce",
-      "image": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800",
+      "image": "/projects/Automotive_website_portfolio_thu._2K_202608232035.jpeg",
       "description": "High-conversion Shopify e-commerce build with instant search, sticky cart, and custom size-guide modal app.",
       "technologies": [
         "Shopify Plus",
@@ -2049,7 +2061,7 @@
       "slug": "zenix-fashion-ads",
       "serviceId": "ads-management",
       "category": "Digital Marketing",
-      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800",
+      "image": "/projects/Restaurant_website_mockup_showcase_2K_202608232030.jpeg",
       "description": "Full-funnel Meta & TikTok ad structure with custom CBO scaling, dynamic retargeting, and creative testing.",
       "technologies": [
         "Meta Ads Manager",
@@ -2069,7 +2081,7 @@
       "slug": "omnitech-google-ads",
       "serviceId": "ads-management",
       "category": "Digital Marketing",
-      "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=800",
+      "image": "/projects/Website_design_showcase_thumbnail_2K_202608232027.jpeg",
       "description": "High-intent Search & Performance Max campaigns with negative keyword isolation and CRM lead tracking.",
       "technologies": [
         "Google Ads",
@@ -2088,7 +2100,7 @@
       "slug": "quantum-tech-youtube",
       "serviceId": "video-editing",
       "category": "Creative",
-      "image": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=800",
+      "image": "/projects/Video_editing_workstation_setup_2K_202608232103.jpeg",
       "description": "End-to-end post-production, narrative editing, sound design, and motion graphic overlays for 250k subscriber channel.",
       "technologies": [
         "Premiere Pro",
@@ -2107,7 +2119,7 @@
       "slug": "solstice-reels-suite",
       "serviceId": "video-editing",
       "category": "Creative",
-      "image": "https://images.unsplash.com/photo-1536240478700-b869070f9279?q=80&w=800",
+      "image": "/projects/Editor_creating_social_media_videos_202608232100.jpeg",
       "description": "High-retention UGC and product showcase edits engineered specifically for Instagram Reels & TikTok video ads.",
       "technologies": [
         "CapCut Pro",
@@ -2126,7 +2138,7 @@
       "slug": "nova-intelligence",
       "serviceId": "custom-software",
       "category": "Software & Technology",
-      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800",
+      "image": "/projects/AI_chatbot_technology_icon_design_202608252334.jpeg",
       "description": "Custom AI support agent integrated with client database to resolve up to 78% of customer support queries autonomously.",
       "technologies": [
         "Python",

@@ -211,8 +211,12 @@ export default async function HomePage() {
                       <span className="badge badge-emerald" data-cms-field="badge">{card.badge}</span>
                     </div>
                   )}
-                  <div className="hp-svc-icon" aria-hidden="true" data-cms-field="icon">
-                    {card.icon || '◆'}
+                  <div className="hp-svc-icon" aria-hidden="true" data-cms-field="icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {card.icon && card.icon.startsWith('/') ? (
+                      <img src={card.icon} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      card.icon || '◆'
+                    )}
                   </div>
                   <div className="hp-svc-title" data-cms-field="name">{card.name}</div>
                   <p className="hp-svc-desc" data-cms-field="shortDescription">{card.shortDescription}</p>

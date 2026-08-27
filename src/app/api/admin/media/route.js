@@ -71,7 +71,7 @@ export async function POST(request) {
         originalName: file.name,
         url: `/uploads/${uniqueName}`,
         type: file.type,
-        size: buffer.length,
+        size: fileSize,
         alt: altText,
         folder: formData.get('folder') || '',
         uploadedAt: new Date().toISOString(),
