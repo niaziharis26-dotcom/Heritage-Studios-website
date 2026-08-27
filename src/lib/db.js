@@ -400,18 +400,24 @@ class Database {
    * Subsequent calls within the same module instance return instantly from cache.
    */
   async load() {
-    // If data is already loaded in this Lambda invocation, skip the DB round-trip.
-    // In production (serverless), each cold-start resets this.data = null,
-    // so every cold-start fetches fresh data from MongoDB.
-    if (this.data) return this.data;
+    // Implement a 2-second TTL to deduplicate calls within the same request 
+    // (generateMetadata, layout, page) while ensuring warm Lambdas don't serve stale data.
+    const now = Date.now();
+    if (this.data && this._lastLoadTime && (now - this._lastLoadTime < 2000)) {
+      return this.data;
+    }
 
     // Deduplicate concurrent load() calls
     if (this._loadPromise) return this._loadPromise;
 
-    this._loadPromise = this._fetchFromMongo();
-    this.data = await this._loadPromise;
-    this._loadPromise = null;
-    return this.data;
+    this._loadPromise = this._fetchFromMongo().then(data => {
+      this.data = data;
+      this._lastLoadTime = Date.now();
+      this._loadPromise = null;
+      return data;
+    });
+    
+    return this._loadPromise;
   }
 
   async _fetchFromMongo() {
@@ -562,6 +568,7 @@ class Database {
   invalidate() {
     this.data = null;
     this._loadPromise = null;
+    this._lastLoadTime = 0;
   }
 
   // ── Admin authentication ───────────────────────────────────────────────────
