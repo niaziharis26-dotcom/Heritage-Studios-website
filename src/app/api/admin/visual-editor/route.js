@@ -2,6 +2,7 @@ import { verifySessionToken } from '@/lib/auth';
 import db from '@/lib/db';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,9 @@ export async function GET(request) {
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Always load fresh data from MongoDB before reading
+  await db.load();
 
   const revisions = db.get('revisions') || [];
 
@@ -55,8 +59,8 @@ export async function POST(request) {
         if (!componentKey || !data) return NextResponse.json({ error: 'Missing componentKey or data' }, { status: 400 });
         const drafts = db.get('drafts') || {};
         drafts[componentKey] = { ...data, _draftedAt: new Date().toISOString() };
-        db.set('drafts', drafts);
-        logAction('admin', 'draft_saved', `Draft saved: ${componentKey}`);
+        await db.set('drafts', drafts);
+        await logAction('admin', 'draft_saved', `Draft saved: ${componentKey}`);
         return NextResponse.json({ success: true, draftedAt: drafts[componentKey]._draftedAt });
       }
 
@@ -70,12 +74,11 @@ export async function POST(request) {
         const components = db.get('components') || {};
         const { _draftedAt, ...cleanDraft } = draft;
         components[componentKey] = { ...components[componentKey], ...cleanDraft };
-        db.set('components', components);
+        await db.set('components', components);
 
         delete drafts[componentKey];
-        db.set('drafts', drafts);
-        logAction('admin', 'published', `Published: ${componentKey}`);
-        const { revalidatePath } = require('next/cache');
+        await db.set('drafts', drafts);
+        await logAction('admin', 'published', `Published: ${componentKey}`);
         db.invalidate();
         revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
@@ -122,12 +125,9 @@ export async function POST(request) {
         await db.set('drafts', {});
 
         // Create revision snapshot
-        createRevision('admin', 'Manual publish', { components, navigation, footer, settings, services });
-        logAction('admin', 'published_all', 'Published all drafts and edits to live site');
-        
-        await db.syncToGithub();
+        await createRevision('admin', 'Manual publish', { components, navigation, footer, settings, services });
+        await logAction('admin', 'published_all', 'Published all drafts and edits to live site');
 
-        const { revalidatePath } = require('next/cache');
         db.invalidate();
         revalidatePath('/', 'layout');
         
@@ -141,17 +141,19 @@ export async function POST(request) {
         if (!Array.isArray(sections)) return NextResponse.json({ error: 'sections must be an array' }, { status: 400 });
         
         if (pageId === 'home' || !pageId) {
-          db.set('homepageSections', sections);
+          await db.set('homepageSections', sections);
         }
         
         const pages = db.get('pages') || [];
         const pageIdx = pages.findIndex(p => p.id === (pageId || 'home'));
         if (pageIdx !== -1) {
           pages[pageIdx].sections = sections;
-          db.set('pages', pages);
+          await db.set('pages', pages);
         }
         
-        logAction('admin', 'sections_reordered', `Sections reordered on page: ${pageId || 'home'}`);
+        await logAction('admin', 'sections_reordered', `Sections reordered on page: ${pageId || 'home'}`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
@@ -177,8 +179,10 @@ export async function POST(request) {
         };
         
         pages.push(newPage);
-        db.set('pages', pages);
-        logAction('admin', 'page_created', `Dynamic page created: ${title} (${slug})`);
+        await db.set('pages', pages);
+        await logAction('admin', 'page_created', `Dynamic page created: ${title} (${slug})`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true, page: newPage });
       }
 
@@ -215,7 +219,7 @@ export async function POST(request) {
         };
         
         services.push(newSvc);
-        db.set('services', services);
+        await db.set('services', services);
         
         // Also register page for it so it shows in page list
         const pages = db.get('pages') || [];
@@ -228,9 +232,11 @@ export async function POST(request) {
           sections: [], // renders service detail template
           seo: { title: '', description: '', robots: 'index,follow', ogImage: '' }
         });
-        db.set('pages', pages);
+        await db.set('pages', pages);
         
-        logAction('admin', 'service_created', `Service created: ${name} (${slug})`);
+        await logAction('admin', 'service_created', `Service created: ${name} (${slug})`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true, service: newSvc });
       }
 
@@ -248,14 +254,14 @@ export async function POST(request) {
         // Add to page sections
         if (!pages[pageIdx].sections) pages[pageIdx].sections = [];
         pages[pageIdx].sections.push(newSectionId);
-        db.set('pages', pages);
+        await db.set('pages', pages);
         
         // Initialize default empty component settings
         const components = db.get('components') || {};
         components[newSectionId] = { visible: true };
-        db.set('components', components);
+        await db.set('components', components);
         
-        logAction('admin', 'section_added', `Section ${newSectionId} of type ${componentType} added to ${pageId}`);
+        await logAction('admin', 'section_added', `Section ${newSectionId} of type ${componentType} added to ${pageId}`);
         return NextResponse.json({ success: true, sectionId: newSectionId });
       }
 
@@ -270,11 +276,10 @@ export async function POST(request) {
         
         if (pages[pageIdx].sections) {
           pages[pageIdx].sections = pages[pageIdx].sections.filter(id => id !== sectionId);
-          db.set('pages', pages);
+          await db.set('pages', pages);
         }
         
-        // Also cleanup components/drafts if wanted, but keeping is safer for undo/history.
-        logAction('admin', 'section_deleted', `Section ${sectionId} deleted from ${pageId}`);
+        await logAction('admin', 'section_deleted', `Section ${sectionId} deleted from ${pageId}`);
         return NextResponse.json({ success: true });
       }
 
@@ -298,14 +303,14 @@ export async function POST(request) {
         const components = db.get('components') || {};
         const sourceData = components[sectionId] || {};
         components[newSectionId] = JSON.parse(JSON.stringify(sourceData));
-        db.set('components', components);
+        await db.set('components', components);
         
         // Insert into sections list after the source
         sections.splice(secIdx + 1, 0, newSectionId);
         pages[pageIdx].sections = sections;
-        db.set('pages', pages);
+        await db.set('pages', pages);
         
-        logAction('admin', 'section_duplicated', `Section ${sectionId} duplicated to ${newSectionId}`);
+        await logAction('admin', 'section_duplicated', `Section ${sectionId} duplicated to ${newSectionId}`);
         return NextResponse.json({ success: true, sectionId: newSectionId });
       }
 
@@ -316,32 +321,40 @@ export async function POST(request) {
         if (!components[componentKey]) components[componentKey] = {};
         const newVisible = !(components[componentKey].visible !== false);
         components[componentKey].visible = newVisible;
-        db.set('components', components);
-        logAction('admin', 'visibility_toggled', `${componentKey}: ${newVisible ? 'visible' : 'hidden'}`);
+        await db.set('components', components);
+        await logAction('admin', 'visibility_toggled', `${componentKey}: ${newVisible ? 'visible' : 'hidden'}`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true, visible: newVisible });
       }
 
       // ── Update global design tokens ───────────────────────────────────
       case 'updateGlobalStyles': {
         const { styles } = body;
-        db.set('globalStyles', styles);
-        logAction('admin', 'global_styles_updated', 'Global design system updated');
+        await db.set('globalStyles', styles);
+        await logAction('admin', 'global_styles_updated', 'Global design system updated');
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
       // ── Update navigation ─────────────────────────────────────────────
       case 'updateNavigation': {
         const { navigation } = body;
-        db.set('navigation', navigation);
-        logAction('admin', 'navigation_updated', 'Navigation updated');
+        await db.set('navigation', navigation);
+        await logAction('admin', 'navigation_updated', 'Navigation updated');
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
       // ── Update footer ─────────────────────────────────────────────────
       case 'updateFooter': {
         const { footer } = body;
-        db.set('footer', footer);
-        logAction('admin', 'footer_updated', 'Footer updated');
+        await db.set('footer', footer);
+        await logAction('admin', 'footer_updated', 'Footer updated');
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
@@ -349,8 +362,10 @@ export async function POST(request) {
       case 'updateSettings': {
         const { settings } = body;
         const existing = db.get('settings') || {};
-        db.set('settings', { ...existing, ...settings });
-        logAction('admin', 'settings_updated', 'Site settings updated');
+        await db.set('settings', { ...existing, ...settings });
+        await logAction('admin', 'settings_updated', 'Site settings updated');
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
@@ -362,8 +377,10 @@ export async function POST(request) {
         if (idx === -1) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
         pages[idx].seo = { ...pages[idx].seo, ...seo };
         pages[idx].lastModified = new Date().toISOString();
-        db.set('pages', pages);
-        logAction('admin', 'seo_updated', `SEO updated for: ${pageId}`);
+        await db.set('pages', pages);
+        await logAction('admin', 'seo_updated', `SEO updated for: ${pageId}`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
@@ -374,12 +391,14 @@ export async function POST(request) {
         const rev = revisions.find(r => r.id === revisionId);
         if (!rev) return NextResponse.json({ error: 'Revision not found' }, { status: 404 });
 
-        if (rev.snapshot.components) db.set('components', rev.snapshot.components);
-        if (rev.snapshot.navigation) db.set('navigation', rev.snapshot.navigation);
-        if (rev.snapshot.footer) db.set('footer', rev.snapshot.footer);
-        db.set('drafts', {});
+        if (rev.snapshot.components) await db.set('components', rev.snapshot.components);
+        if (rev.snapshot.navigation) await db.set('navigation', rev.snapshot.navigation);
+        if (rev.snapshot.footer) await db.set('footer', rev.snapshot.footer);
+        await db.set('drafts', {});
 
-        logAction('admin', 'revision_restored', `Restored revision: ${rev.label || revisionId}`);
+        await logAction('admin', 'revision_restored', `Restored revision: ${rev.label || revisionId}`);
+        db.invalidate();
+        revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
 
@@ -394,7 +413,7 @@ export async function POST(request) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function logAction(user, action, details) {
+async function logAction(user, action, details) {
   try {
     const log = db.get('activityLog') || [];
     log.unshift({
@@ -405,13 +424,13 @@ function logAction(user, action, details) {
       details,
     });
     // Keep max 500 entries
-    db.set('activityLog', log.slice(0, 500));
+    await db.set('activityLog', log.slice(0, 500));
   } catch (e) {
     console.error('Failed to log activity:', e);
   }
 }
 
-function createRevision(user, label, snapshot) {
+async function createRevision(user, label, snapshot) {
   try {
     const revisions = db.get('revisions') || [];
     revisions.push({
@@ -422,7 +441,7 @@ function createRevision(user, label, snapshot) {
       snapshot,
     });
     // Keep max 50 revisions
-    db.set('revisions', revisions.slice(-50));
+    await db.set('revisions', revisions.slice(-50));
   } catch (e) {
     console.error('Failed to create revision:', e);
   }
