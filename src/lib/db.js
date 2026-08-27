@@ -15,35 +15,26 @@
  */
 
 const crypto = require('crypto');
+const { Redis } = require('@upstash/redis');
 
-// ── MongoDB connection singleton ───────────────────────────────────────────────
-// Cached across Lambda warm invocations (standard Next.js serverless pattern).
-let cachedClient = null;
-let cachedDb = null;
+let kvClient = null;
 
-async function getMongoDb() {
-  if (cachedDb) return cachedDb;
+function getKvClient() {
+  if (kvClient) return kvClient;
+  
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!process.env.MONGODB_URI) {
-    return null; // No MongoDB URI — will fall back to defaults
+  if (!url || !token) {
+    return null; // Fallback to defaults
   }
 
   try {
-    const { MongoClient } = require('mongodb');
-    if (!cachedClient) {
-      cachedClient = new MongoClient(process.env.MONGODB_URI, {
-        connectTimeoutMS: 8000,
-        serverSelectionTimeoutMS: 8000,
-        maxPoolSize: 10,
-      });
-      await cachedClient.connect();
-    }
-    cachedDb = cachedClient.db('heritage_studios');
-    return cachedDb;
+    kvClient = new Redis({ url, token });
+    return kvClient;
   } catch (err) {
-    console.error('[db] MongoDB connection error:', err.message);
-    cachedClient = null;
-    cachedDb = null;
+    console.error('[db] Redis connection error:', err.message);
+    kvClient = null;
     return null;
   }
 }
@@ -410,7 +401,7 @@ class Database {
     // Deduplicate concurrent load() calls
     if (this._loadPromise) return this._loadPromise;
 
-    this._loadPromise = this._fetchFromMongo().then(data => {
+    this._loadPromise = this._fetchFromKV().then(data => {
       this.data = data;
       this._lastLoadTime = Date.now();
       this._loadPromise = null;
@@ -420,26 +411,24 @@ class Database {
     return this._loadPromise;
   }
 
-  async _fetchFromMongo() {
-    const mongoDb = await getMongoDb();
+  async _fetchFromKV() {
+    const kv = getKvClient();
 
-    if (mongoDb) {
+    if (kv) {
       try {
-        const doc = await mongoDb.collection('database').findOne({ _id: 'main' });
+        const doc = await kv.get('heritage_studios_db');
         if (doc) {
-          const { _id, ...rest } = doc;
-          const data = this._mergeDefaults(rest);
-          console.log('[db] Loaded data from MongoDB Atlas');
+          const data = this._mergeDefaults(doc);
+          console.log('[db] Loaded data from Upstash Redis KV');
           return data;
         } else {
-          // Collection exists but no document — seed with defaults
-          console.log('[db] No document in MongoDB — seeding with defaults');
+          console.log('[db] No document in KV — seeding with defaults');
           const seedData = JSON.parse(JSON.stringify(INITIAL_DB));
-          await this._writeToMongo(seedData);
+          await this._writeToKV(seedData);
           return seedData;
         }
       } catch (err) {
-        console.error('[db] Failed to fetch from MongoDB, using defaults:', err.message);
+        console.error('[db] Failed to fetch from KV, using defaults:', err.message);
       }
     } else {
       // Try to load from database.json as a local fallback (dev only)
@@ -490,10 +479,10 @@ class Database {
   /**
    * Write the full data object to MongoDB.
    */
-  async _writeToMongo(data) {
-    const mongoDb = await getMongoDb();
-    if (!mongoDb) {
-      console.warn('[db] No MongoDB connection — write skipped');
+   async _writeToKV(data) {
+    const kv = getKvClient();
+    if (!kv) {
+      console.warn('[db] No Redis connection — write skipped');
       return false;
     }
 
@@ -507,14 +496,10 @@ class Database {
         saveData.activityLog = saveData.activityLog.slice(0, 500);
       }
 
-      await mongoDb.collection('database').updateOne(
-        { _id: 'main' },
-        { $set: saveData },
-        { upsert: true }
-      );
+      await kv.set('heritage_studios_db', saveData);
       return true;
     } catch (err) {
-      console.error('[db] MongoDB write error:', err.message);
+      console.error('[db] Redis write error:', err.message);
       return false;
     }
   }
@@ -542,9 +527,9 @@ class Database {
     await this.load();
     this.data[key] = val;
 
-    const saved = await this._writeToMongo(this.data);
+    const saved = await this._writeToKV(this.data);
     if (saved) {
-      console.log(`[db] Saved key "${key}" to MongoDB`);
+      console.log(`[db] Saved key "${key}" to KV`);
     } else {
       // Local dev fallback: write to database.json
       try {

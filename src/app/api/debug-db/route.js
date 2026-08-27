@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
+import { Redis } from '@upstash/redis';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Diagnostic endpoint — tells us exactly whether MongoDB is connected.
- * Visit: /api/debug-db on your live Vercel URL to diagnose.
- * DELETE THIS FILE after confirming the fix is working.
- */
 export async function GET() {
-  const hasUri = !!process.env.MONGODB_URI;
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  
+  const hasUri = !!(url && token);
   let connected = false;
   let error = null;
   let docExists = false;
@@ -16,26 +15,20 @@ export async function GET() {
 
   if (hasUri) {
     try {
-      const { MongoClient } = require('mongodb');
-      const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 5000, serverSelectionTimeoutMS: 5000 });
-      await client.connect();
-      const mdb = client.db('heritage_studios');
-      const doc = await mdb.collection('database').findOne({ _id: 'main' });
+      const kv = new Redis({ url, token });
+      const doc = await kv.get('heritage_studios_db');
       connected = true;
       docExists = !!doc;
       if (doc) {
-        const { _id, ...rest } = doc;
-        docKeys = Object.keys(rest);
+        docKeys = Object.keys(doc);
       }
-      await client.close();
     } catch (err) {
       error = err.message;
     }
   }
 
   return NextResponse.json({
-    MONGODB_URI_SET: hasUri,
-    MONGODB_URI_PREFIX: hasUri ? process.env.MONGODB_URI.substring(0, 30) + '...' : null,
+    KV_CONFIGURED: hasUri,
     connected,
     document_exists: docExists,
     document_top_level_keys: docKeys,
