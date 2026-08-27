@@ -26,7 +26,8 @@ export const metadata = {
   },
 };
 
-export default function SocialMediaPage() {
+export default async function SocialMediaPage() {
+  await db.load();
   const settings = db.get('settings') || {};
   const services = db.get('services') || [];
 

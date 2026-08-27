@@ -24,7 +24,8 @@ export const metadata = {
   },
 };
 
-export default function ReviewsPage() {
+export default async function ReviewsPage() {
+  await db.load();
   const reviews = db.get('reviews') || [];
   const settings = db.get('settings') || {};
 

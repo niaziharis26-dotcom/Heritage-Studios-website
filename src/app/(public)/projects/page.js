@@ -26,7 +26,8 @@ export const metadata = {
   },
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  await db.load();
   const projects = db.get('projects') || [];
   const settings = db.get('settings') || {};
 

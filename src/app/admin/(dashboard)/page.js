@@ -8,9 +8,10 @@ export const metadata = {
 };
 
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
   // Validate auth
   checkAuth();
+  await db.load();
 
   const inquiries = db.get('inquiries') || [];
   const projects = db.get('internalProjects') || [];

@@ -14,17 +14,20 @@ function checkAuth() {
 }
 
 export async function GET(req) {
+  await db.load();
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const navigation = db.get('navigation') || { links: [], ctaText: 'Book a Call', ctaUrl: '' };
   return NextResponse.json(navigation);
 }
 
 export async function POST(req) {
+  await db.load();
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
-    db.set('navigation', body);
-    revalidatePath('/', 'layout');
+    await db.set('navigation', body);
+    db.invalidate();
+      revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, navigation: body });
   } catch (e) {
     return NextResponse.json({ error: 'Failed to update navigation' }, { status: 500 });

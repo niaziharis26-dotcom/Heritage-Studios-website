@@ -35,7 +35,8 @@ export const metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  await db.load();
   const components = db.get('components') || {};
   const services   = db.get('services') || [];
   const projects   = db.get('projects') || [];

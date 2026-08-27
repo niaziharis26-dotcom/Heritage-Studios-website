@@ -2,6 +2,9 @@ import { verifySessionToken } from '@/lib/auth';
 import db from '@/lib/db';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 function checkApiAuth() {
   const cookieStore = cookies();
@@ -20,10 +23,10 @@ const STATIC_PAGES = [
   { id: 'social-media', title: 'Social Media', slug: '/social-media', status: 'published', template: 'default', seo: { title: '', description: '', robots: 'index,follow', ogImage: '' }, lastModified: null },
 ];
 
-function ensurePages() {
+async function ensurePages() {
   let pages = db.get('pages');
   if (!pages || !Array.isArray(pages) || pages.length === 0) {
-    db.set('pages', STATIC_PAGES);
+    await db.set('pages', STATIC_PAGES);
     return STATIC_PAGES;
   }
   return pages;
@@ -31,15 +34,17 @@ function ensurePages() {
 
 // GET /api/admin/pages
 export async function GET(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const pages = ensurePages();
+  const pages = await ensurePages();
   return NextResponse.json({ pages });
 }
 
 // POST /api/admin/pages
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -47,7 +52,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { action } = body;
-    let pages = ensurePages();
+    let pages = await ensurePages();
 
     if (action === 'updateSeo') {
       const { pageId, seo } = body;
@@ -55,12 +60,15 @@ export async function POST(request) {
       if (idx === -1) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
       pages[idx].seo = { ...(pages[idx].seo || {}), ...seo };
       pages[idx].lastModified = new Date().toISOString();
-      db.set('pages', pages);
+      await db.set('pages', pages);
 
       // Log activity
       const log = db.get('activityLog') || [];
       log.unshift({ id: `log_${Date.now()}`, timestamp: new Date().toISOString(), user: 'admin', action: 'seo_updated', details: `SEO updated: ${pageId}` });
-      db.set('activityLog', log.slice(0, 500));
+      await db.set('activityLog', log.slice(0, 500));
+
+      db.invalidate();
+      revalidatePath('/', 'layout');
 
       return NextResponse.json({ success: true, page: pages[idx] });
     }
@@ -71,7 +79,11 @@ export async function POST(request) {
       if (idx === -1) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
       pages[idx].status = status;
       pages[idx].lastModified = new Date().toISOString();
-      db.set('pages', pages);
+      await db.set('pages', pages);
+      
+      db.invalidate();
+      revalidatePath('/', 'layout');
+      
       return NextResponse.json({ success: true });
     }
 
@@ -89,7 +101,11 @@ export async function POST(request) {
         lastModified: new Date().toISOString(),
       };
       pages.push(newPage);
-      db.set('pages', pages);
+      await db.set('pages', pages);
+      
+      db.invalidate();
+      revalidatePath('/', 'layout');
+      
       return NextResponse.json({ success: true, page: newPage });
     }
 

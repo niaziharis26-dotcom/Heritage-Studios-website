@@ -17,6 +17,7 @@ export async function GET() {
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  await db.load();
   return NextResponse.json({ services: db.get('services') || [] });
 }
 
@@ -27,8 +28,9 @@ export async function POST(request) {
 
   try {
     const serviceData = await request.json();
+    await db.load();
     const services = db.get('services') || [];
-    
+
     const newService = {
       id: 's_' + Math.random().toString(36).substr(2, 9),
       name: serviceData.name || 'New Service',
@@ -50,7 +52,8 @@ export async function POST(request) {
     };
 
     services.push(newService);
-    db.set('services', services);
+    await db.set('services', services);
+    db.invalidate();
     revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true, service: newService });
@@ -67,6 +70,7 @@ export async function PUT(request) {
 
   try {
     const updatedService = await request.json();
+    await db.load();
     const services = db.get('services') || [];
     const index = services.findIndex(s => s.id === updatedService.id);
 
@@ -80,9 +84,10 @@ export async function PUT(request) {
       sortOrder: Number(updatedService.sortOrder) || services[index].sortOrder
     };
 
-    db.set('services', services);
+    await db.set('services', services);
+    db.invalidate();
     revalidatePath('/', 'layout');
-    
+
     return NextResponse.json({ success: true, service: services[index] });
   } catch (err) {
     console.error('Services API error:', err);
@@ -101,12 +106,14 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
     }
 
+    await db.load();
     const services = db.get('services') || [];
     const filtered = services.filter(s => s.id !== id);
 
-    db.set('services', filtered);
+    await db.set('services', filtered);
+    db.invalidate();
     revalidatePath('/', 'layout');
-    
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Services API error:', err);

@@ -26,7 +26,8 @@ export const metadata = {
   },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  await db.load();
   const components = db.get('components') || {};
   const settings   = db.get('settings') || {};
   const about      = components.aboutPage || {};

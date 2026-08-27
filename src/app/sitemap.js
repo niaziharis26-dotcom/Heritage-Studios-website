@@ -9,7 +9,8 @@ import db from "@/lib/db";
  */
 export const dynamic = 'force-dynamic';
 
-export default function sitemap() {
+export default async function sitemap() {
+  await db.load();
   const services = db.get("services") || [];
   const publishedServices = services.filter((s) => s.published && s.slug);
 

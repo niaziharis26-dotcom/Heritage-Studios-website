@@ -14,6 +14,7 @@ function checkApiAuth() {
 }
 
 export async function GET() {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -21,6 +22,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -34,8 +36,9 @@ export async function POST(request) {
       ...updatedSettings
     };
 
-    db.set('settings', newSettings);
-    revalidatePath('/', 'layout');
+    await db.set('settings', newSettings);
+    db.invalidate();
+      revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, settings: newSettings });
   } catch (err) {
     console.error('Settings API error:', err);

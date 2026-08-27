@@ -4,6 +4,7 @@ import path from 'path';
 import db from '@/lib/db';
 
 export async function GET() {
+  await db.load();
   const publicDir = path.join(process.cwd(), 'src/app/(public)');
   
   const getRoutes = (dir, basePath = '') => {

@@ -26,7 +26,8 @@ export const metadata = {
   },
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  await db.load();
   const components = db.get('components') || {};
   const services   = db.get('services') || [];
   const settings   = db.get('settings') || {};

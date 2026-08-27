@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST() {
+  await db.load();
   try {
     const response = NextResponse.json({ success: true });
     response.cookies.delete('admin_session');

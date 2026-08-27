@@ -12,6 +12,7 @@ function checkApiAuth() {
 
 // GET /api/admin/activity
 export async function GET(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

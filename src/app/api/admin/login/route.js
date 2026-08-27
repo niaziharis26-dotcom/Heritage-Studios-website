@@ -12,6 +12,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Username and password are required.' }, { status: 400 });
     }
 
+    await db.load();
     const isValid = db.verifyAdmin(username, password);
 
     if (!isValid) {

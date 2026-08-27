@@ -5,24 +5,10 @@ import ClientCursor from '@/components/ClientCursor';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import Script from 'next/script';
 
-export default function PublicLayout({ children }) {
-  // Check if we are in preview mode via query params
-  // Since this is a server component layout, searchParams are not directly passed to layouts.
-  // However, we can read headers or use middleware. Next.js App Router layouts cannot easily read query params.
-  // But wait, the pages themselves can!
-  // Alternatively, we can check drafts in database and if not empty, merge them.
-  // Let's check db drafts. To be safe, we merge drafts into components/settings/nav/footer if the draft key exists.
-  // Actually, we can read from drafts dynamically if we have a way.
-  // Let's do a simple check: if drafts are present, we can merge them in layout so the preview page renders them.
-  // Wait! If the user is on the actual public site (no preview), we don't want to show drafts.
-  // Next.js App router: we can check if the request headers have referrer or host pointing to visual-editor, 
-  // or we can just merge drafts in the page component instead by checking searchParams there, and pass a settings override.
-  // Let's let page components and layout load drafts if query param is set.
-  // But layout doesn't have query params in Server Components. We can use header x-url if middleware sets it,
-  // or simple check: check if drafts should be loaded.
-  // Let's write a simple helper or just load drafts for Header/Footer if drafts have keys.
-  // Let's look at the database.json. We can read navigation and footer drafts.
-  
+export default async function PublicLayout({ children }) {
+  // Load fresh data from MongoDB Atlas on every request
+  await db.load();
+
   const drafts = db.get('drafts') || {};
   const settings = { ...(db.get('settings') || {}), ...(drafts.settings || {}) };
   const services = db.get('services') || [];

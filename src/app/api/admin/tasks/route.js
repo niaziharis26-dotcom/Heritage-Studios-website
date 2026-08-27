@@ -11,6 +11,7 @@ function checkApiAuth() {
 }
 
 export async function GET() {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -37,7 +39,7 @@ export async function POST(request) {
     };
 
     tasks.push(newTask);
-    db.set('tasks', tasks);
+    await db.set('tasks', tasks);
 
     return NextResponse.json({ success: true, task: newTask });
   } catch (err) {
@@ -47,6 +49,7 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -65,7 +68,7 @@ export async function PUT(request) {
       ...updated
     };
 
-    db.set('tasks', tasks);
+    await db.set('tasks', tasks);
     return NextResponse.json({ success: true, task: tasks[index] });
   } catch (err) {
     console.error('Tasks API error:', err);
@@ -74,6 +77,7 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -87,7 +91,7 @@ export async function DELETE(request) {
     const tasks = db.get('tasks') || [];
     const filtered = tasks.filter(t => t.id !== id);
 
-    db.set('tasks', filtered);
+    await db.set('tasks', filtered);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Tasks API error:', err);

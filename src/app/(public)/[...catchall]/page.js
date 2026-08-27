@@ -5,6 +5,7 @@ import DynamicSectionRenderer from '@/components/DynamicSectionRenderer';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '@/lib/siteConfig';
 
 export async function generateMetadata({ params }) {
+  await db.load();
   const pages = db.get('pages') || [];
   const slug = '/' + (params.catchall || []).join('/');
   const page = pages.find(p => p.slug === slug);
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function CatchAllDynamicPage({ params, searchParams = {} }) {
+export default async function CatchAllDynamicPage({ params, searchParams = {} }) {
+  await db.load();
   const pages = db.get('pages') || [];
   const slug = '/' + (params.catchall || []).join('/');
   const page = pages.find(p => p.slug === slug);

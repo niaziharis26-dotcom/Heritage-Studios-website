@@ -22,6 +22,7 @@ function ensureUploadsDir() {
 
 // GET /api/admin/media
 export async function GET(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -31,6 +32,7 @@ export async function GET(request) {
 
 // POST /api/admin/media — handles both file upload (FormData) and JSON actions
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -77,7 +79,7 @@ export async function POST(request) {
 
       const media = db.get('media') || [];
       media.unshift(mediaRecord);
-      db.set('media', media);
+      await db.set('media', media);
 
       // Log activity
       if (typeof db.logActivity === 'function') {
@@ -102,7 +104,7 @@ export async function POST(request) {
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 });
       if (alt !== undefined) media[idx].alt = alt;
       if (name !== undefined) media[idx].filename = name;
-      db.set('media', media);
+      await db.set('media', media);
       return NextResponse.json({ success: true, media: media[idx] });
     }
 
@@ -114,6 +116,7 @@ export async function POST(request) {
 
 // DELETE /api/admin/media
 export async function DELETE(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -133,7 +136,7 @@ export async function DELETE(request) {
     }
 
     const updated = media.filter(m => m.id !== id);
-    db.set('media', updated);
+    await db.set('media', updated);
 
     if (typeof db.logActivity === 'function') {
       db.logActivity('admin', 'media_delete', `Deleted: ${item.originalName || item.filename}`);
@@ -148,6 +151,7 @@ export async function DELETE(request) {
 
 // PATCH /api/admin/media — update alt text or filename
 export async function PATCH(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -160,7 +164,7 @@ export async function PATCH(request) {
 
     if (alt !== undefined) media[idx].alt = alt;
     if (name !== undefined) media[idx].filename = name;
-    db.set('media', media);
+    await db.set('media', media);
 
     return NextResponse.json({ success: true, media: media[idx] });
   } catch (err) {

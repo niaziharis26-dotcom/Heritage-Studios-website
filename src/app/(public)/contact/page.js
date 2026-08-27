@@ -27,7 +27,8 @@ export const metadata = {
   },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  await db.load();
   const components = db.get('components') || {};
   const settings   = db.get('settings') || {};
   const services   = db.get('services') || [];

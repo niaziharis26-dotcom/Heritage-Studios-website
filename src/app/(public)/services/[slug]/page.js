@@ -5,6 +5,7 @@ import db from '@/lib/db';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '@/lib/siteConfig';
 
 export async function generateMetadata({ params }) {
+  await db.load();
   const services = db.get('services') || [];
   const svc = services.find(s => s.slug === params.slug);
   if (!svc) return { title: 'Service Not Found | Heritage Studios' };
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function ServiceDetailPage({ params }) {
+export default async function ServiceDetailPage({ params }) {
+  await db.load();
   const services = db.get('services') || [];
   const settings = db.get('settings') || {};
   const whyUsData = db.get('whyUs') || [];

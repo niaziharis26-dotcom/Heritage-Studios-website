@@ -11,6 +11,7 @@ function checkApiAuth() {
 }
 
 export async function GET() {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -39,7 +41,7 @@ export async function POST(request) {
     };
 
     reviews.push(newReview);
-    db.set('reviews', reviews);
+    await db.set('reviews', reviews);
 
     return NextResponse.json({ success: true, review: newReview });
   } catch (err) {
@@ -49,6 +51,7 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -69,7 +72,7 @@ export async function PUT(request) {
       sortOrder: Number(updated.sortOrder) || reviews[index].sortOrder
     };
 
-    db.set('reviews', reviews);
+    await db.set('reviews', reviews);
     return NextResponse.json({ success: true, review: reviews[index] });
   } catch (err) {
     console.error('Reviews API error:', err);
@@ -78,6 +81,7 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -91,7 +95,7 @@ export async function DELETE(request) {
     const reviews = db.get('reviews') || [];
     const filtered = reviews.filter(r => r.id !== id);
 
-    db.set('reviews', filtered);
+    await db.set('reviews', filtered);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Reviews API error:', err);

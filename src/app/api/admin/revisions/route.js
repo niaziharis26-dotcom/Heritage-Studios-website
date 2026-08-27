@@ -12,6 +12,7 @@ function checkApiAuth() {
 
 // GET /api/admin/revisions — list all revisions
 export async function GET(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -30,6 +31,7 @@ export async function GET(request) {
 
 // POST /api/admin/revisions — restore a revision
 export async function POST(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -45,12 +47,12 @@ export async function POST(request) {
       }
 
       // Restore snapshot
-      if (rev.snapshot.components) db.set('components', rev.snapshot.components);
-      if (rev.snapshot.navigation) db.set('navigation', rev.snapshot.navigation);
-      if (rev.snapshot.footer) db.set('footer', rev.snapshot.footer);
+      if (rev.snapshot.components) await db.set('components', rev.snapshot.components);
+      if (rev.snapshot.navigation) await db.set('navigation', rev.snapshot.navigation);
+      if (rev.snapshot.footer) await db.set('footer', rev.snapshot.footer);
 
       // Clear all drafts after restoring
-      db.set('drafts', {});
+      await db.set('drafts', {});
 
       // Log the restore action
       const activityLog = db.get('activityLog') || [];
@@ -61,7 +63,7 @@ export async function POST(request) {
         action: 'revision_restored',
         details: `Restored revision from ${new Date(rev.timestamp).toLocaleString()} — "${rev.label || 'Unnamed'}"`,
       });
-      db.set('activityLog', activityLog.slice(0, 500));
+      await db.set('activityLog', activityLog.slice(0, 500));
 
       return NextResponse.json({ success: true, restoredAt: new Date().toISOString() });
     }

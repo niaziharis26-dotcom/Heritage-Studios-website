@@ -11,11 +11,13 @@ function checkAuth() {
 }
 
 export async function GET(req) {
+  await db.load();
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   return NextResponse.json(db.get('clients') || []);
 }
 
 export async function POST(req) {
+  await db.load();
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
@@ -30,19 +32,19 @@ export async function POST(req) {
         ...client 
       };
       clients.push(newClient);
-      db.set('clients', clients);
+      await db.set('clients', clients);
       return NextResponse.json({ success: true, client: newClient });
     }
 
     if (action === 'update') {
       clients = clients.map(c => c.id === client.id ? { ...c, ...client } : c);
-      db.set('clients', clients);
+      await db.set('clients', clients);
       return NextResponse.json({ success: true });
     }
 
     if (action === 'delete') {
       clients = clients.filter(c => c.id !== client.id);
-      db.set('clients', clients);
+      await db.set('clients', clients);
       return NextResponse.json({ success: true });
     }
 

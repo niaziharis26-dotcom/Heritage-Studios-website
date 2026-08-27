@@ -26,32 +26,38 @@ export async function POST(request) {
       if (!sectionsList) {
         return NextResponse.json({ error: 'Invalid reorder array.' }, { status: 400 });
       }
-      db.set('homepageSections', sectionsList);
+      await db.load();
+      await db.set('homepageSections', sectionsList);
       await db.syncToGithub();
+      db.invalidate();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true });
     }
 
     if (action === 'toggleVisibility') {
+      await db.load();
       const components = db.get('components') || {};
       if (!components[sectionId]) {
         components[sectionId] = { visible: true };
       }
       components[sectionId].visible = !components[sectionId].visible;
-      db.set('components', components);
+      await db.set('components', components);
       await db.syncToGithub();
+      db.invalidate();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true, visible: components[sectionId].visible });
     }
 
     if (action === 'updateComponent') {
+      await db.load();
       const components = db.get('components') || {};
       components[sectionId] = {
         ...components[sectionId],
         ...componentData
       };
-      db.set('components', components);
+      await db.set('components', components);
       await db.syncToGithub();
+      db.invalidate();
       revalidatePath('/', 'layout');
       return NextResponse.json({ success: true });
     }

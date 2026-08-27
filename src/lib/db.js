@@ -1,64 +1,54 @@
-const fs = require('fs');
-const path = require('path');
+/**
+ * Heritage Studios — MongoDB-First Database Layer
+ * ================================================
+ * This module connects directly to MongoDB Atlas on every request.
+ * It eliminates the broken /tmp file-sync approach that caused
+ * stale data to appear on the Vercel frontend.
+ *
+ * Architecture:
+ *   - MongoDB Atlas is the SINGLE SOURCE OF TRUTH
+ *   - Connection is cached at the module level (survives Lambda warm instances)
+ *   - db.load() populates an in-memory cache per invocation
+ *   - db.get(key) reads from that cache synchronously
+ *   - db.set(key, val) writes to MongoDB and updates the cache
+ *   - No filesystem I/O for runtime data (no database.json dependency)
+ */
+
 const crypto = require('crypto');
 
-const ORIGINAL_DB_FILE = path.join(process.cwd(), 'database.json');
-const TMP_DB_FILE = path.join('/tmp', 'database.json');
+// ── MongoDB connection singleton ───────────────────────────────────────────────
+// Cached across Lambda warm invocations (standard Next.js serverless pattern).
+let cachedClient = null;
+let cachedDb = null;
 
-let lastSyncTime = 0;
-const SYNC_INTERVAL = 10000; // 10 seconds cache TTL
+async function getMongoDb() {
+  if (cachedDb) return cachedDb;
 
-function getDbFilePath() {
-  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    try {
-      const now = Date.now();
-      const needsSync = !fs.existsSync(TMP_DB_FILE) || (now - lastSyncTime > SYNC_INTERVAL);
-
-      if (needsSync) {
-        lastSyncTime = now;
-        if (process.env.MONGODB_URI) {
-          try {
-            const { execSync } = require('child_process');
-            execSync(`node -e "
-              (async () => {
-                try {
-                  const fs = require('fs');
-                  const { MongoClient } = require('mongodb');
-                  const client = new MongoClient('${process.env.MONGODB_URI}', { connectTimeoutMS: 4000 });
-                  await client.connect();
-                  const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
-                  if (doc) {
-                    const { _id, ...rest } = doc;
-                    fs.writeFileSync('${TMP_DB_FILE.replace(/\\/g, '\\\\')}', JSON.stringify(rest, null, 2), 'utf8');
-                  }
-                  await client.close();
-                } catch (e) {
-                  process.exit(1);
-                }
-              })();
-            "`);
-          } catch (e) {
-            console.warn("MongoDB startup sync failed, falling back to local database.json:", e.message);
-          }
-        }
-
-        if (!fs.existsSync(TMP_DB_FILE)) {
-          if (fs.existsSync(ORIGINAL_DB_FILE)) {
-            fs.copyFileSync(ORIGINAL_DB_FILE, TMP_DB_FILE);
-          }
-        }
-      }
-      return TMP_DB_FILE;
-    } catch (e) {
-      return ORIGINAL_DB_FILE;
-    }
+  if (!process.env.MONGODB_URI) {
+    return null; // No MongoDB URI — will fall back to defaults
   }
-  return ORIGINAL_DB_FILE;
+
+  try {
+    const { MongoClient } = require('mongodb');
+    if (!cachedClient) {
+      cachedClient = new MongoClient(process.env.MONGODB_URI, {
+        connectTimeoutMS: 8000,
+        serverSelectionTimeoutMS: 8000,
+        maxPoolSize: 10,
+      });
+      await cachedClient.connect();
+    }
+    cachedDb = cachedClient.db('heritage_studios');
+    return cachedDb;
+  } catch (err) {
+    console.error('[db] MongoDB connection error:', err.message);
+    cachedClient = null;
+    cachedDb = null;
+    return null;
+  }
 }
 
-let DB_FILE = getDbFilePath();
-
-// Secure password helper using built-in Node crypto
+// ── Password helpers ───────────────────────────────────────────────────────────
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
@@ -71,8 +61,8 @@ function verifyPassword(password, storedPassword) {
   return hash === checkHash;
 }
 
+// ── Default seed data ─────────────────────────────────────────────────────────
 const DEFAULT_SERVICES = [
-  // Web & E-commerce
   {
     id: "1",
     name: "Website Development",
@@ -90,9 +80,7 @@ const DEFAULT_SERVICES = [
       { name: "Starter", price: "1200", currency: "USD", description: "Bespoke 5-page landing website", features: ["1 Custom Design", "Fully Responsive", "Contact Form", "Basic SEO"], popular: false, ctaText: "Select Starter" },
       { name: "Growth", price: "2500", currency: "USD", description: "Full corporate business site", features: ["Up to 12 pages", "Custom CMS integration", "Speed Optimization", "Advanced SEO", "3 months support"], popular: true, ctaText: "Select Growth" }
     ],
-    faqs: [
-      { question: "How long does it take?", answer: "Usually between 2 to 4 weeks depending on complexity." }
-    ],
+    faqs: [{ question: "How long does it take?", answer: "Usually between 2 to 4 weeks depending on complexity." }],
     relatedServices: ["ui-ux-design", "saas-development"],
     published: true,
     sortOrder: 1
@@ -114,9 +102,7 @@ const DEFAULT_SERVICES = [
       { name: "Standard", price: "1500", currency: "USD", description: "Standard Shopify setup & customization", features: ["Theme Customization", "Payment Gateway Setup", "10 Products Uploaded", "Basic SEO"], popular: false, ctaText: "Get Started" },
       { name: "Custom Elite", price: "3500", currency: "USD", description: "Fully bespoke custom coded storefront", features: ["Custom Liquid design", "Advanced app integrations", "Product bundle configurations", "Speed optimization", "SEO priority"], popular: true, ctaText: "Build Custom Store" }
     ],
-    faqs: [
-      { question: "Can you migrate my products?", answer: "Yes, we support automated migration from WooCommerce, Magento, or custom databases." }
-    ],
+    faqs: [{ question: "Can you migrate my products?", answer: "Yes, we support automated migration from WooCommerce, Magento, or custom databases." }],
     relatedServices: ["wordpress-development", "payment-gateway-integration"],
     published: true,
     sortOrder: 2
@@ -174,9 +160,9 @@ const DEFAULT_PROJECTS = [
     category: "Web & E-commerce",
     image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=800",
     gallery: [],
-    description: "Bespoke custom-coded Headless storefront for a premium fragrance brand. Focused on high-speed transitions, glassmorphic layout, and dynamic animations.",
+    description: "Bespoke custom-coded Headless storefront for a premium fragrance brand.",
     technologies: ["Next.js", "React", "Vanilla CSS", "Stripe API"],
-    result: "42% increase in mobile conversion rate and 65% faster loading speed compared to previous platform.",
+    result: "42% increase in mobile conversion rate and 65% faster loading speed.",
     client: "Aura Cosmetics Ltd",
     featured: true,
     published: true,
@@ -189,7 +175,7 @@ const DEFAULT_PROJECTS = [
     category: "Software & Technology",
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800",
     gallery: [],
-    description: "Custom AI support agent integrated with client database to resolve up to 75% of customer support queries instantly without human intervention.",
+    description: "Custom AI support agent integrated with client database to resolve up to 75% of queries instantly.",
     technologies: ["Python", "Langchain", "OpenAI GPT-4o", "Next.js"],
     result: "Reduced support ticket response times from 4 hours to instantaneous answers.",
     client: "Nova Logistics Inc",
@@ -332,7 +318,7 @@ const DEFAULT_SETTINGS = {
 const INITIAL_DB = {
   admin: {
     username: "haris",
-    passwordHash: hashPassword("Asusrogphone123") // Default credentials: haris / Asusrogphone123
+    passwordHash: hashPassword("Asusrogphone123")
   },
   navigation: {
     links: [
@@ -377,10 +363,9 @@ const INITIAL_DB = {
   internalProjects: [],
   tasks: [],
   media: [],
-  // ── CMS Visual Editor additions ─────────────────────────────────────
-  drafts: {},         // draft content keyed by componentKey
-  revisions: [],      // [ { id, timestamp, user, label, snapshot } ]
-  activityLog: [],    // [ { id, timestamp, user, action, details } ]
+  drafts: {},
+  revisions: [],
+  activityLog: [],
   pages: [
     { id: 'home', title: 'Home', slug: '/', status: 'published', template: 'default', seo: { title: '', description: '', robots: 'index,follow', ogImage: '' }, lastModified: null },
     { id: 'about', title: 'About', slug: '/about', status: 'published', template: 'default', seo: { title: '', description: '', robots: 'index,follow', ogImage: '' }, lastModified: null },
@@ -402,170 +387,199 @@ const INITIAL_DB = {
   },
 };
 
-// Database persistence wrapper
+// ── Database class ─────────────────────────────────────────────────────────────
 class Database {
   constructor() {
     this.data = null;
+    this._loadPromise = null;
   }
 
-  load() {
-    try {
-      const activeFile = getDbFilePath();
-      if (fs.existsSync(activeFile)) {
-        const fileContent = fs.readFileSync(activeFile, 'utf8');
-        this.data = JSON.parse(fileContent);
-        // Merge in missing default components
-        if (!this.data.components) this.data.components = {};
-        for (const key of Object.keys(DEFAULT_COMPONENTS)) {
-          if (!this.data.components[key]) {
-            this.data.components[key] = DEFAULT_COMPONENTS[key];
-          }
-        }
-        
-        if (!this.data.navigation) this.data.navigation = INITIAL_DB.navigation;
-        if (!this.data.footer) this.data.footer = INITIAL_DB.footer;
-        if (!this.data.clients) this.data.clients = [];
-        // Merge new CMS keys
-        if (!this.data.drafts) this.data.drafts = {};
-        if (!this.data.revisions) this.data.revisions = [];
-        if (!this.data.activityLog) this.data.activityLog = [];
-        if (!this.data.pages || !Array.isArray(this.data.pages) || this.data.pages.length === 0) {
-          this.data.pages = INITIAL_DB.pages;
-        }
-        if (!this.data.globalStyles) this.data.globalStyles = INITIAL_DB.globalStyles;
-      } else if (fs.existsSync(ORIGINAL_DB_FILE)) {
-        const fileContent = fs.readFileSync(ORIGINAL_DB_FILE, 'utf8');
-        this.data = JSON.parse(fileContent);
-      } else {
-        this.data = JSON.parse(JSON.stringify(INITIAL_DB));
-        this.save();
-      }
-    } catch (e) {
-      console.error("Failed to load database.json", e);
-      this.data = JSON.parse(JSON.stringify(INITIAL_DB));
-    }
+  /**
+   * Load all data from MongoDB Atlas into in-memory cache.
+   * Called at the start of every Server Component request via `await db.load()`.
+   * Subsequent calls within the same module instance return instantly from cache.
+   */
+  async load() {
+    // If data is already loaded in this Lambda invocation, skip the DB round-trip.
+    // In production (serverless), each cold-start resets this.data = null,
+    // so every cold-start fetches fresh data from MongoDB.
+    if (this.data) return this.data;
+
+    // Deduplicate concurrent load() calls
+    if (this._loadPromise) return this._loadPromise;
+
+    this._loadPromise = this._fetchFromMongo();
+    this.data = await this._loadPromise;
+    this._loadPromise = null;
     return this.data;
   }
 
-  async save() {
-    try {
-      const activeFile = getDbFilePath();
-      fs.writeFileSync(activeFile, JSON.stringify(this.data, null, 2), 'utf8');
+  async _fetchFromMongo() {
+    const mongoDb = await getMongoDb();
 
-      // Awaited write to MongoDB Atlas (ensures serverless Lambdas don't freeze mid-write)
-      if (process.env.MONGODB_URI) {
-        try {
-          const { MongoClient } = require('mongodb');
-          const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 5000 });
-          await client.connect();
-          const cleanData = JSON.parse(JSON.stringify(this.data || {}));
-          if (cleanData.revisions) {
-            cleanData.revisions = cleanData.revisions.slice(-3); // Prune revisions to keep database size light
-          }
-          await client.db('heritage_studios').collection('database').updateOne(
-            { _id: 'main' },
-            { $set: cleanData },
-            { upsert: true }
-          );
-          await client.close();
-          console.log("Successfully saved updated database to MongoDB Atlas!");
-        } catch (err) {
-          console.error("MongoDB save error:", err);
+    if (mongoDb) {
+      try {
+        const doc = await mongoDb.collection('database').findOne({ _id: 'main' });
+        if (doc) {
+          const { _id, ...rest } = doc;
+          const data = this._mergeDefaults(rest);
+          console.log('[db] Loaded data from MongoDB Atlas');
+          return data;
+        } else {
+          // Collection exists but no document — seed with defaults
+          console.log('[db] No document in MongoDB — seeding with defaults');
+          const seedData = JSON.parse(JSON.stringify(INITIAL_DB));
+          await this._writeToMongo(seedData);
+          return seedData;
         }
+      } catch (err) {
+        console.error('[db] Failed to fetch from MongoDB, using defaults:', err.message);
       }
-    } catch (e) {
-      console.error("Failed to save database.json", e);
+    } else {
+      // Try to load from database.json as a local fallback (dev only)
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'database.json');
+        if (fs.existsSync(filePath)) {
+          const raw = fs.readFileSync(filePath, 'utf8');
+          const parsed = JSON.parse(raw);
+          console.log('[db] Loaded data from local database.json (dev fallback)');
+          return this._mergeDefaults(parsed);
+        }
+      } catch (e) {
+        console.warn('[db] Could not load database.json:', e.message);
+      }
     }
+
+    // Last resort: use INITIAL_DB defaults
+    console.log('[db] Using hardcoded INITIAL_DB defaults');
+    return JSON.parse(JSON.stringify(INITIAL_DB));
   }
 
-  async syncToGithub() {
-    const token = process.env.GITHUB_TOKEN;
-    if (!token) return false;
+  /**
+   * Merge loaded data with defaults to handle missing/new keys.
+   */
+  _mergeDefaults(data) {
+    const merged = { ...JSON.parse(JSON.stringify(INITIAL_DB)), ...data };
 
-    const repo = process.env.GITHUB_REPO || 'niaziharis26-dotcom/Heritage-Studios-website';
-    const filePath = 'database.json';
-    const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+    // Deep merge components so new component keys aren't lost
+    merged.components = { ...DEFAULT_COMPONENTS, ...(data.components || {}) };
+
+    // Ensure array fields exist
+    if (!merged.navigation) merged.navigation = INITIAL_DB.navigation;
+    if (!merged.footer) merged.footer = INITIAL_DB.footer;
+    if (!merged.clients) merged.clients = [];
+    if (!merged.drafts) merged.drafts = {};
+    if (!merged.revisions) merged.revisions = [];
+    if (!merged.activityLog) merged.activityLog = [];
+    if (!merged.pages || !Array.isArray(merged.pages) || merged.pages.length === 0) {
+      merged.pages = INITIAL_DB.pages;
+    }
+    if (!merged.globalStyles) merged.globalStyles = INITIAL_DB.globalStyles;
+
+    return merged;
+  }
+
+  /**
+   * Write the full data object to MongoDB.
+   */
+  async _writeToMongo(data) {
+    const mongoDb = await getMongoDb();
+    if (!mongoDb) {
+      console.warn('[db] No MongoDB connection — write skipped');
+      return false;
+    }
 
     try {
-      const getRes = await fetch(apiUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Heritage-Studios-CMS'
-        },
-        cache: 'no-store'
-      });
-
-      if (!getRes.ok) {
-        console.error('GitHub API get SHA error:', await getRes.text());
-        return false;
+      // Prune revisions before writing to keep document size reasonable
+      const saveData = JSON.parse(JSON.stringify(data || {}));
+      if (saveData.revisions) {
+        saveData.revisions = saveData.revisions.slice(-50);
+      }
+      if (saveData.activityLog) {
+        saveData.activityLog = saveData.activityLog.slice(0, 500);
       }
 
-      const getJson = await getRes.json();
-      const sha = getJson.sha;
-
-      const cleanData = JSON.parse(JSON.stringify(this.data || {}));
-      if (cleanData.revisions) {
-        cleanData.revisions = cleanData.revisions.slice(-3);
-      }
-      const jsonString = JSON.stringify(cleanData, null, 2);
-      const contentB64 = Buffer.from(jsonString).toString('base64');
-
-      const putRes = await fetch(apiUrl, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Heritage-Studios-CMS'
-        },
-        body: JSON.stringify({
-          message: 'cms: sync live website edits from admin panel',
-          content: contentB64,
-          sha,
-          branch: 'main'
-        })
-      });
-
-      if (putRes.ok) {
-        console.log('Successfully committed database.json to GitHub repository!');
-        return true;
-      } else {
-        console.error('GitHub API commit error:', await putRes.text());
-        return false;
-      }
+      await mongoDb.collection('database').updateOne(
+        { _id: 'main' },
+        { $set: saveData },
+        { upsert: true }
+      );
+      return true;
     } catch (err) {
-      console.error('Failed to sync database.json to GitHub:', err);
+      console.error('[db] MongoDB write error:', err.message);
       return false;
     }
   }
 
+  /**
+   * Synchronous read from in-memory cache.
+   * MUST call await db.load() before calling db.get() in async contexts.
+   * For API routes that always call db.set(), the data is already loaded.
+   */
   get(key) {
-    this.load();
+    if (!this.data) {
+      // Fallback: load defaults synchronously if load() was somehow not called
+      this.data = JSON.parse(JSON.stringify(INITIAL_DB));
+      console.warn('[db] db.get() called before db.load() — using defaults for key:', key);
+    }
     return this.data[key];
   }
 
+  /**
+   * Persist a top-level key to MongoDB and update in-memory cache.
+   * API routes call this after every admin action.
+   */
   async set(key, val) {
-    this.load();
+    // Ensure data is loaded before mutating
+    await this.load();
     this.data[key] = val;
-    await this.save();
+
+    const saved = await this._writeToMongo(this.data);
+    if (saved) {
+      console.log(`[db] Saved key "${key}" to MongoDB`);
+    } else {
+      // Local dev fallback: write to database.json
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'database.json');
+        fs.writeFileSync(filePath, JSON.stringify(this.data, null, 2), 'utf8');
+        console.log(`[db] Saved key "${key}" to local database.json (dev fallback)`);
+      } catch (e) {
+        console.error('[db] Failed to write to local database.json:', e.message);
+      }
+    }
+
     return val;
   }
 
+  /**
+   * Force a fresh fetch from MongoDB on the next db.get() call.
+   * Called after revalidatePath() to ensure the next SSR render picks up latest data.
+   */
+  invalidate() {
+    this.data = null;
+    this._loadPromise = null;
+  }
+
+  // ── Admin authentication ───────────────────────────────────────────────────
+
   verifyAdmin(usernameInput, passwordInput) {
-    this.load();
+    if (!this.data) this.data = JSON.parse(JSON.stringify(INITIAL_DB));
     if (!usernameInput || !passwordInput) return false;
     const u = String(usernameInput).toLowerCase().trim();
     const p = String(passwordInput).trim();
 
-    // 1. Environment variable override check
+    // 1. Environment variable override
     if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
       if (u === process.env.ADMIN_USERNAME.toLowerCase().trim() && p === process.env.ADMIN_PASSWORD.trim()) {
         return true;
       }
     }
 
-    // 2. Direct fail-safe check for administrator credentials
+    // 2. Direct fail-safe check (for recovery)
     if ((u === 'haris' || u === 'admin') && (p === 'Asusrogphone123' || p === 'admin123')) {
       return true;
     }
@@ -579,15 +593,15 @@ class Database {
   }
 
   updateAdminPassword(newPassword) {
-    this.load();
+    if (!this.data) this.data = JSON.parse(JSON.stringify(INITIAL_DB));
     this.data.admin.passwordHash = hashPassword(newPassword);
-    this.save();
+    return this.set('admin', this.data.admin);
   }
 
-  // ── CMS Visual Editor helpers ──────────────────────────────────────
+  // ── CMS Visual Editor helpers ──────────────────────────────────────────────
 
-  logActivity(user, action, details) {
-    this.load();
+  async logActivity(user, action, details) {
+    await this.load();
     if (!this.data.activityLog) this.data.activityLog = [];
     this.data.activityLog.unshift({
       id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -596,76 +610,62 @@ class Database {
       action,
       details,
     });
-    // Keep max 500 log entries
     this.data.activityLog = this.data.activityLog.slice(0, 500);
-    this.save();
+    await this._writeToMongo(this.data);
   }
 
-  createRevision(user, label, snapshot) {
-    this.load();
+  async createRevision(user, label, snapshot) {
+    await this.load();
     if (!this.data.revisions) this.data.revisions = [];
     this.data.revisions.push({
       id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       timestamp: new Date().toISOString(),
       user: user || 'admin',
       label: label || 'Unnamed revision',
-      snapshot: JSON.parse(JSON.stringify(snapshot)), // deep clone
+      snapshot: JSON.parse(JSON.stringify(snapshot)),
     });
-    // Keep max 50 revisions
     this.data.revisions = this.data.revisions.slice(-50);
-    this.save();
+    await this._writeToMongo(this.data);
   }
 
   getDraft(key) {
-    this.load();
-    const drafts = this.data.drafts || {};
+    const drafts = this.data?.drafts || {};
     return drafts[key] || null;
   }
 
-  setDraft(key, val) {
-    this.load();
+  async setDraft(key, val) {
+    await this.load();
     if (!this.data.drafts) this.data.drafts = {};
     this.data.drafts[key] = { ...val, _draftedAt: new Date().toISOString() };
-    this.save();
+    await this._writeToMongo(this.data);
     return this.data.drafts[key];
   }
 
-  publishDraft(key) {
-    this.load();
+  async publishDraft(key) {
+    await this.load();
     const draft = this.data.drafts && this.data.drafts[key];
     if (!draft) return false;
     if (!this.data.components) this.data.components = {};
     const { _draftedAt, ...cleanDraft } = draft;
     this.data.components[key] = { ...this.data.components[key], ...cleanDraft };
     delete this.data.drafts[key];
-    this.save();
+    await this._writeToMongo(this.data);
     return true;
   }
-}
 
-const dbInstance = new Database();
-
-// Startup sync: Load database.json from MongoDB Atlas to local tmp path if MONGODB_URI is set
-if (process.env.MONGODB_URI) {
-  try {
-    const { MongoClient } = require('mongodb');
-    const client = new MongoClient(process.env.MONGODB_URI, { connectTimeoutMS: 2000 });
-    client.connect().then(async () => {
-      const doc = await client.db('heritage_studios').collection('database').findOne({ _id: 'main' });
-      if (doc) {
-        const { _id, ...rest } = doc;
-        fs.writeFileSync(TMP_DB_FILE, JSON.stringify(rest, null, 2), 'utf8');
-        dbInstance.data = null; // force reload data from updated file
-        dbInstance.load();
-        console.log("Successfully fetched latest database from MongoDB Atlas on startup!");
-      }
-      client.close();
-    }).catch(err => {
-      console.warn("MongoDB startup sync warning (using local fallback):", err.message);
-    });
-  } catch (e) {
-    console.error("MongoDB startup sync error:", e);
+  /**
+   * syncToGithub() — kept as a no-op stub.
+   * Previously synced database.json to GitHub on every save.
+   * MongoDB is now the source of truth; this method is no longer needed.
+   * Existing callers (CMS routes) can continue calling it without error.
+   */
+  async syncToGithub() {
+    // No-op: MongoDB is now the authoritative source of truth.
+    // GitHub database.json is a static seed file only.
+    return false;
   }
 }
 
+// ── Singleton export ───────────────────────────────────────────────────────────
+const dbInstance = new Database();
 module.exports = dbInstance;

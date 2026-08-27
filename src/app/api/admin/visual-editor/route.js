@@ -44,6 +44,9 @@ export async function POST(request) {
     const body = await request.json();
     const { action } = body;
 
+    // Ensure in-memory cache is populated from MongoDB before any reads/writes
+    await db.load();
+
     switch (action) {
 
       // ── Save a draft (does NOT publish to live) ──────────────────────
@@ -73,6 +76,7 @@ export async function POST(request) {
         db.set('drafts', drafts);
         logAction('admin', 'published', `Published: ${componentKey}`);
         const { revalidatePath } = require('next/cache');
+        db.invalidate();
         revalidatePath('/', 'layout');
         return NextResponse.json({ success: true });
       }
@@ -124,6 +128,7 @@ export async function POST(request) {
         await db.syncToGithub();
 
         const { revalidatePath } = require('next/cache');
+        db.invalidate();
         revalidatePath('/', 'layout');
         
         return NextResponse.json({ success: true, publishedAt: new Date().toISOString() });

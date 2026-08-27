@@ -13,6 +13,7 @@ function checkApiAuth() {
 }
 
 export async function GET() {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

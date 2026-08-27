@@ -11,6 +11,7 @@ function checkApiAuth() {
 }
 
 export async function GET() {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,6 +19,7 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
+  await db.load();
   if (!checkApiAuth()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -36,7 +38,7 @@ export async function PATCH(request) {
     }
 
     inquiries[index].status = status;
-    db.set('inquiries', inquiries);
+    await db.set('inquiries', inquiries);
 
     return NextResponse.json({ success: true, inquiry: inquiries[index] });
   } catch (err) {
