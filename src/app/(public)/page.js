@@ -160,7 +160,7 @@ export default async function HomePage() {
                 'Shopify', 'WordPress', 'React', 'Next.js', 'Meta Ads', 'Google Ads',
                 'WooCommerce', 'Elementor', 'Daraz', 'OpenAI', 'Python', 'Mobile Apps',
                 'Laravel', 'Node.js', 'Premiere Pro'
-              ]} variant="light" />
+              ]} services={services} variant="light" />
             </div>
           </div>
         </section>
@@ -437,9 +437,16 @@ export default async function HomePage() {
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--hs-text-600)', lineHeight: 1.75, flex: 1, marginBottom: '1.5rem' }}>
                     "{rev.review}"
                   </p>
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'var(--hs-text-900)', fontSize: 'var(--text-sm)' }}>{rev.name}</div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--hs-text-400)' }}>{rev.position}, {rev.company}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {rev.image && (
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--hs-border)' }}>
+                        <img src={rev.image} alt={rev.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontWeight: 700, color: 'var(--hs-text-900)', fontSize: 'var(--text-sm)' }}>{rev.name}</div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--hs-text-400)' }}>{rev.position}, {rev.company}</div>
+                    </div>
                   </div>
                 </div>
               ))}

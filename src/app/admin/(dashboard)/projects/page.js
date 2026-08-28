@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import MediaSelector from '@/components/MediaSelector';
 import AdminLayoutWrapper from '@/components/AdminLayoutWrapper';
 
 const EMPTY_FORM = {
@@ -130,9 +131,7 @@ export default function AdminProjectsPage() {
               <div className="form-group"><label className="form-label">Client</label><input className="form-input" value={form.client} onChange={e => f('client', e.target.value)} /></div>
             </div>
             <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">Image URL</label>
-              <input className="form-input" value={form.image} onChange={e => f('image', e.target.value)} placeholder="https://..." />
-              {form.image && <img src={form.image} alt="preview" style={{ marginTop: '0.75rem', maxHeight: 120, borderRadius: 'var(--r-md)', objectFit: 'cover' }} />}
+              <MediaSelector label="Project Image" value={form.image} onChange={val => f('image', val)} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1rem' }} className="form-grid-2">
               <div className="form-group"><label className="form-label">Category</label>

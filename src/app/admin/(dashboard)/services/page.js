@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import MediaSelector from '@/components/MediaSelector';
 import AdminLayoutWrapper from '@/components/AdminLayoutWrapper';
 
 const CATEGORIES = ['Web & E-commerce', 'Software & Technology', 'Creative', 'Marketing & Research'];

@@ -184,6 +184,11 @@ export default async function ServiceDetailPage({ params }) {
               </span>
             )}
 
+            {svc.icon && svc.icon.startsWith('/') && (
+              <div style={{ width: '64px', height: '64px', marginBottom: '1.25rem' }}>
+                 <img src={svc.icon} alt={svc.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+            )}
             <h1 data-cms-field="heroTitle" style={{ marginBottom: '1.25rem' }}>
               {svc.heroTitle || svc.name}
             </h1>
@@ -242,7 +247,9 @@ export default async function ServiceDetailPage({ params }) {
               {childServices.map(child => (
                 <Link key={child.id} href={"/services/" + child.slug} className="svc-sub-card" data-cms-id={child.id}>
                   {child.icon && (
-                    <div style={{ fontSize: '2rem', marginBottom: '0.75rem', lineHeight: 1 }}>{child.icon}</div>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.75rem', lineHeight: 1, width: '40px', height: '40px' }}>
+                      {child.icon.startsWith('/') ? <img src={child.icon} alt={child.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : child.icon}
+                    </div>
                   )}
                   <h3 data-cms-field="name">{child.name}</h3>
                   <p data-cms-field="shortDescription">{child.shortDescription}</p>
@@ -520,12 +527,19 @@ export default async function ServiceDetailPage({ params }) {
                   <p style={{ fontStyle: 'italic', fontSize: 'var(--text-base)', lineHeight: 1.8, color: 'var(--hs-text-600)', flexGrow: 1, marginBottom: '1.5rem' }}>
                     "{rev.review}"
                   </p>
-                  <div style={{ paddingTop: '1.25rem', borderTop: '1px solid var(--hs-border-light)' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--hs-text-900)', marginBottom: '0.25rem' }}>
-                      {rev.name}
-                    </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--hs-text-400)', fontWeight: 500 }}>
-                      {rev.position}{rev.company ? (", " + rev.company) : ''}
+                  <div style={{ paddingTop: '1.25rem', borderTop: '1px solid var(--hs-border-light)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {rev.image && (
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--hs-border-light)' }}>
+                        <img src={rev.image} alt={rev.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--hs-text-900)', marginBottom: '0.25rem' }}>
+                        {rev.name}
+                      </div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--hs-text-400)', fontWeight: 500 }}>
+                        {rev.position}{rev.company ? (", " + rev.company) : ''}
+                      </div>
                     </div>
                   </div>
                 </div>

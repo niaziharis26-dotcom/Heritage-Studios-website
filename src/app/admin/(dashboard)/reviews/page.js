@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
+import MediaSelector from '@/components/MediaSelector';
 import AdminLayoutWrapper from '@/components/AdminLayoutWrapper';
 
-const EMPTY_FORM = { name: '', company: '', position: '', rating: 5, review: '', published: true, sortOrder: 1 };
+const EMPTY_FORM = { name: '', company: '', position: '', rating: 5, review: '', published: true, sortOrder: 1, image: '' };
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews]   = useState([]);
