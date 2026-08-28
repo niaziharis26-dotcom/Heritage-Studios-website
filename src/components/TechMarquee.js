@@ -8,8 +8,16 @@ export default function TechMarquee({ technologies = [], services = [], variant 
   const doubled = [...technologies, ...technologies, ...technologies];
 
   const getCustomIcon = (techName) => {
-    // Try to find a matching service by name
-    const match = services.find(s => s.name.toLowerCase() === techName.toLowerCase() || (s.technologies && s.technologies.toLowerCase().includes(techName.toLowerCase())));
+    // Try to find a matching service by name or technology
+    const match = services.find(s => {
+      if (!s || !s.name) return false;
+      if (s.name.toLowerCase() === techName.toLowerCase()) return true;
+      // technologies may be array or string
+      const techStr = Array.isArray(s.technologies)
+        ? s.technologies.join(',')
+        : (typeof s.technologies === 'string' ? s.technologies : '');
+      return techStr.toLowerCase().includes(techName.toLowerCase());
+    });
     if (match && match.icon && match.icon.startsWith('/')) {
       return <img src={match.icon} alt={techName} style={{ width: '22px', height: '22px', objectFit: 'contain' }} />;
     }

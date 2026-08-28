@@ -71,11 +71,12 @@ export async function POST(request) {
         originalName: file.name,
         url: `/uploads/${uniqueName}`,
         type: file.type,
-        size: fileSize,
+        size: buffer.length,
         alt: altText,
         folder: formData.get('folder') || '',
         uploadedAt: new Date().toISOString(),
       };
+
 
       const media = db.get('media') || [];
       media.unshift(mediaRecord);
