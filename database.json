@@ -3,6 +3,101 @@
     "username": "haris",
     "passwordHash": "8ac4c2ed57bd4f474d90651fe3e383aa:19c30b54c634f6c65bf16612b15472e6b61d04daffe6d9ccb4fb660be4f84952405ce1ff8532dccb341c9039d4d0c96c4071bca40a3bf9ae9a3350bb82793c55"
   },
+  "navigation": {
+    "links": [
+      {
+        "id": "n1",
+        "name": "Home",
+        "path": "/",
+        "visible": true,
+        "order": 1
+      },
+      {
+        "id": "n2",
+        "name": "Services",
+        "path": "/services",
+        "visible": true,
+        "order": 2
+      },
+      {
+        "id": "n3",
+        "name": "About",
+        "path": "/about",
+        "visible": true,
+        "order": 3
+      },
+      {
+        "id": "n4",
+        "name": "Projects",
+        "path": "/projects",
+        "visible": true,
+        "order": 4
+      },
+      {
+        "id": "n5",
+        "name": "Reviews",
+        "path": "/reviews",
+        "visible": true,
+        "order": 5
+      },
+      {
+        "id": "n6",
+        "name": "Social Media",
+        "path": "/social-media",
+        "visible": true,
+        "order": 6
+      },
+      {
+        "id": "n7",
+        "name": "Contact",
+        "path": "/contact",
+        "visible": true,
+        "order": 7
+      }
+    ],
+    "ctaText": "Book a Call",
+    "ctaUrl": "https://calendly.com/heritagestudios"
+  },
+  "footer": {
+    "ctaHeading": "Ready to grow your brand?",
+    "ctaSub": "Let's build something extraordinary together.",
+    "ctaPrimaryText": "WhatsApp Us",
+    "ctaSecondaryText": "Book a Strategy Call",
+    "tagline": "Crafting digital assets with mathematical precision and premium creative flair.",
+    "companyLinksTitle": "Company",
+    "companyLinks": [
+      {
+        "name": "Home",
+        "path": "/"
+      },
+      {
+        "name": "About Us",
+        "path": "/about"
+      },
+      {
+        "name": "All Services",
+        "path": "/services"
+      },
+      {
+        "name": "Portfolio",
+        "path": "/projects"
+      },
+      {
+        "name": "Client Reviews",
+        "path": "/reviews"
+      },
+      {
+        "name": "Social Media",
+        "path": "/social-media"
+      },
+      {
+        "name": "Contact",
+        "path": "/contact"
+      }
+    ],
+    "servicesColumnTitle": "Services",
+    "contactColumnTitle": "Get in Touch"
+  },
   "settings": {
     "companyName": "Heritage Studios",
     "logoText": "HERITAGE STUDIOS",
@@ -2470,144 +2565,294 @@
   "clients": [],
   "internalProjects": [],
   "tasks": [],
-  "media": [],
-  "sessions": {
-    "sess_hu7agjida3fyv2hhxs": {
-      "username": "admin",
-      "expires": "2026-08-11T17:14:16.822Z"
+  "media": [
+    {
+      "id": "media_1787937148136_p706p2",
+      "filename": "Website_design_showcase_thumbnail_2K_202608232027.jpeg",
+      "originalName": "Website_design_showcase_thumbnail_2K_202608232027.jpeg",
+      "url": "/projects/Website_design_showcase_thumbnail_2K_202608232027.jpeg",
+      "type": "image/jpeg",
+      "size": 2131333,
+      "alt": "Website design showcase thumbnail 2K 202608232027",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_r1r0xftzr7yqqpvh4n": {
-      "username": "admin",
-      "expires": "2026-08-12T17:43:42.125Z"
+    {
+      "id": "media_1787937148136_5y1c42",
+      "filename": "Video_editor_working_at_computer_202608232057.jpeg",
+      "originalName": "Video_editor_working_at_computer_202608232057.jpeg",
+      "url": "/projects/Video_editor_working_at_computer_202608232057.jpeg",
+      "type": "image/jpeg",
+      "size": 2064997,
+      "alt": "Video editor working at computer 202608232057",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_7eox4nta2i4kjdmo4m": {
-      "username": "admin",
-      "expires": "2026-08-13T17:56:34.927Z"
+    {
+      "id": "media_1787937148136_yyfbsd",
+      "filename": "Video_editor_working_at_computer_202608232048.jpeg",
+      "originalName": "Video_editor_working_at_computer_202608232048.jpeg",
+      "url": "/projects/Video_editor_working_at_computer_202608232048.jpeg",
+      "type": "image/jpeg",
+      "size": 2228386,
+      "alt": "Video editor working at computer 202608232048",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_7dc2dd60c738dcco8f": {
-      "username": "admin",
-      "expires": "2026-08-16T17:19:28.811Z"
+    {
+      "id": "media_1787937148136_kegfth",
+      "filename": "Video_editing_workstation_setup_2K_202608232103.jpeg",
+      "originalName": "Video_editing_workstation_setup_2K_202608232103.jpeg",
+      "url": "/projects/Video_editing_workstation_setup_2K_202608232103.jpeg",
+      "type": "image/jpeg",
+      "size": 2632571,
+      "alt": "Video editing workstation setup 2K 202608232103",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_7b69yv53yvronma1m9": {
-      "username": "admin",
-      "expires": "2026-08-17T17:24:53.656Z"
+    {
+      "id": "media_1787937148136_o0utnl",
+      "filename": "Software_website_portfolio_thumb…_2K_202608232028.jpeg",
+      "originalName": "Software_website_portfolio_thumb…_2K_202608232028.jpeg",
+      "url": "/projects/Software_website_portfolio_thumb…_2K_202608232028.jpeg",
+      "type": "image/jpeg",
+      "size": 2089823,
+      "alt": "Software website portfolio thumb… 2K 202608232028",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_iftk6g7xynr7tb7ns9": {
-      "username": "admin",
-      "expires": "2026-08-18T15:42:08.457Z"
+    {
+      "id": "media_1787937148136_bc7l2x",
+      "filename": "Restaurant_website_mockup_showcase_2K_202608232030.jpeg",
+      "originalName": "Restaurant_website_mockup_showcase_2K_202608232030.jpeg",
+      "url": "/projects/Restaurant_website_mockup_showcase_2K_202608232030.jpeg",
+      "type": "image/jpeg",
+      "size": 2216940,
+      "alt": "Restaurant website mockup showcase 2K 202608232030",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.136Z"
     },
-    "sess_arv12crmpcb09ip40p": {
-      "username": "admin",
-      "expires": "2026-08-18T16:15:30.919Z"
+    {
+      "id": "media_1787937148135_jrl757",
+      "filename": "Real_estate_website_portfolio_de…_202608232032.jpeg",
+      "originalName": "Real_estate_website_portfolio_de…_202608232032.jpeg",
+      "url": "/projects/Real_estate_website_portfolio_de…_202608232032.jpeg",
+      "type": "image/jpeg",
+      "size": 2311091,
+      "alt": "Real estate website portfolio de… 202608232032",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
     },
-    "sess_arhr32tv50ejxebq69": {
-      "username": "admin",
-      "expires": "2026-08-18T18:13:49.605Z"
+    {
+      "id": "media_1787937148135_au91a9",
+      "filename": "Plant_e-commerce_website_showcase_2K_202608232027.jpeg",
+      "originalName": "Plant_e-commerce_website_showcase_2K_202608232027.jpeg",
+      "url": "/projects/Plant_e-commerce_website_showcase_2K_202608232027.jpeg",
+      "type": "image/jpeg",
+      "size": 2370742,
+      "alt": "Plant e commerce website showcase 2K 202608232027",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
     },
-    "sess_r22dc9j4gzg7eygzi4": {
-      "username": "admin",
-      "expires": "2026-08-20T17:06:54.890Z"
+    {
+      "id": "media_1787937148135_cjsco3",
+      "filename": "Electronics_e-commerce_website_d…_2K_202608232033.jpeg",
+      "originalName": "Electronics_e-commerce_website_d…_2K_202608232033.jpeg",
+      "url": "/projects/Electronics_e-commerce_website_d…_2K_202608232033.jpeg",
+      "type": "image/jpeg",
+      "size": 2251120,
+      "alt": "Electronics e commerce website d… 2K 202608232033",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
     },
-    "sess_l1f5khitueuzy5hoio": {
-      "username": "admin",
-      "expires": "2026-08-24T15:34:18.901Z"
+    {
+      "id": "media_1787937148135_9pqja2",
+      "filename": "Editor_creating_social_media_videos_202608232100.jpeg",
+      "originalName": "Editor_creating_social_media_videos_202608232100.jpeg",
+      "url": "/projects/Editor_creating_social_media_videos_202608232100.jpeg",
+      "type": "image/jpeg",
+      "size": 2597449,
+      "alt": "Editor creating social media videos 202608232100",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
+    },
+    {
+      "id": "media_1787937148135_2fhfpw",
+      "filename": "Digital_agency_website_portfolio…_2K_202608232037.jpeg",
+      "originalName": "Digital_agency_website_portfolio…_2K_202608232037.jpeg",
+      "url": "/projects/Digital_agency_website_portfolio…_2K_202608232037.jpeg",
+      "type": "image/jpeg",
+      "size": 2499160,
+      "alt": "Digital agency website portfolio… 2K 202608232037",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
+    },
+    {
+      "id": "media_1787937148135_di0jhk",
+      "filename": "Automotive_website_portfolio_thu…_2K_202608232035.jpeg",
+      "originalName": "Automotive_website_portfolio_thu…_2K_202608232035.jpeg",
+      "url": "/projects/Automotive_website_portfolio_thu…_2K_202608232035.jpeg",
+      "type": "image/jpeg",
+      "size": 2148896,
+      "alt": "Automotive website portfolio thu… 2K 202608232035",
+      "folder": "projects",
+      "uploadedAt": "2026-08-28T17:12:28.135Z"
+    },
+    {
+      "id": "media_1787937148134_3ltbh9",
+      "filename": "WordPress_website_development_se…_2K_202608252345.jpeg",
+      "originalName": "WordPress_website_development_se…_2K_202608252345.jpeg",
+      "url": "/icons/services/WordPress_website_development_se…_2K_202608252345.jpeg",
+      "type": "image/jpeg",
+      "size": 1412127,
+      "alt": "WordPress website development se… 2K 202608252345",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.134Z"
+    },
+    {
+      "id": "media_1787937148134_6hqkwg",
+      "filename": "WordPress_website_development_se…_2K_202608252335.jpeg",
+      "originalName": "WordPress_website_development_se…_2K_202608252335.jpeg",
+      "url": "/icons/services/WordPress_website_development_se…_2K_202608252335.jpeg",
+      "type": "image/jpeg",
+      "size": 1626585,
+      "alt": "WordPress website development se… 2K 202608252335",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.134Z"
+    },
+    {
+      "id": "media_1787937148134_ol9qbm",
+      "filename": "Website_design_service_icon_2K_202608252334.jpeg",
+      "originalName": "Website_design_service_icon_2K_202608252334.jpeg",
+      "url": "/icons/services/Website_design_service_icon_2K_202608252334.jpeg",
+      "type": "image/jpeg",
+      "size": 1690607,
+      "alt": "Website design service icon 2K 202608252334",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.134Z"
+    },
+    {
+      "id": "media_1787937148134_oc468u",
+      "filename": "Video_editing_service_icon_2K_202608252338.jpeg",
+      "originalName": "Video_editing_service_icon_2K_202608252338.jpeg",
+      "url": "/icons/services/Video_editing_service_icon_2K_202608252338.jpeg",
+      "type": "image/jpeg",
+      "size": 1815126,
+      "alt": "Video editing service icon 2K 202608252338",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.134Z"
+    },
+    {
+      "id": "media_1787937148134_j5la2h",
+      "filename": "Software_development_3D_service_…_202608252333.jpeg",
+      "originalName": "Software_development_3D_service_…_202608252333.jpeg",
+      "url": "/icons/services/Software_development_3D_service_…_202608252333.jpeg",
+      "type": "image/jpeg",
+      "size": 1796373,
+      "alt": "Software development 3D service … 202608252333",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.134Z"
+    },
+    {
+      "id": "media_1787937148133_uq8fvn",
+      "filename": "Software_development_3D_service_…_202608252330.jpeg",
+      "originalName": "Software_development_3D_service_…_202608252330.jpeg",
+      "url": "/icons/services/Software_development_3D_service_…_202608252330.jpeg",
+      "type": "image/jpeg",
+      "size": 1796373,
+      "alt": "Software development 3D service … 202608252330",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.133Z"
+    },
+    {
+      "id": "media_1787937148133_oxkq4y",
+      "filename": "Smartphone_app_development_icon_…_202608252335.jpeg",
+      "originalName": "Smartphone_app_development_icon_…_202608252335.jpeg",
+      "url": "/icons/services/Smartphone_app_development_icon_…_202608252335.jpeg",
+      "type": "image/jpeg",
+      "size": 1451822,
+      "alt": "Smartphone app development icon … 202608252335",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.133Z"
+    },
+    {
+      "id": "media_1787937148133_ea9r48",
+      "filename": "Shopify_e-commerce_development_s…_2K_202608252340.jpeg",
+      "originalName": "Shopify_e-commerce_development_s…_2K_202608252340.jpeg",
+      "url": "/icons/services/Shopify_e-commerce_development_s…_2K_202608252340.jpeg",
+      "type": "image/jpeg",
+      "size": 1452537,
+      "alt": "Shopify e commerce development s… 2K 202608252340",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.133Z"
+    },
+    {
+      "id": "media_1787937148133_2isbzs",
+      "filename": "Online_marketplace_e-commerce_icon_2K_202608252334.jpeg",
+      "originalName": "Online_marketplace_e-commerce_icon_2K_202608252334.jpeg",
+      "url": "/icons/services/Online_marketplace_e-commerce_icon_2K_202608252334.jpeg",
+      "type": "image/jpeg",
+      "size": 1664647,
+      "alt": "Online marketplace e commerce icon 2K 202608252334",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.133Z"
+    },
+    {
+      "id": "media_1787937148133_na9ck5",
+      "filename": "Ecommerce_shopping_cart_service_…_202608252334.jpeg",
+      "originalName": "Ecommerce_shopping_cart_service_…_202608252334.jpeg",
+      "url": "/icons/services/Ecommerce_shopping_cart_service_…_202608252334.jpeg",
+      "type": "image/jpeg",
+      "size": 2393605,
+      "alt": "Ecommerce shopping cart service … 202608252334",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.133Z"
+    },
+    {
+      "id": "media_1787937148132_zs7fak",
+      "filename": "AI_integration_3D_service_icon_202608252335.jpeg",
+      "originalName": "AI_integration_3D_service_icon_202608252335.jpeg",
+      "url": "/icons/services/AI_integration_3D_service_icon_202608252335.jpeg",
+      "type": "image/jpeg",
+      "size": 1737515,
+      "alt": "AI integration 3D service icon 202608252335",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.132Z"
+    },
+    {
+      "id": "media_1787937148132_2qhccg",
+      "filename": "AI_chatbot_technology_icon_design_202608252334.jpeg",
+      "originalName": "AI_chatbot_technology_icon_design_202608252334.jpeg",
+      "url": "/icons/services/AI_chatbot_technology_icon_design_202608252334.jpeg",
+      "type": "image/jpeg",
+      "size": 1740359,
+      "alt": "AI chatbot technology icon design 202608252334",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.132Z"
+    },
+    {
+      "id": "media_1787937148132_itf09m",
+      "filename": "AI_chatbot_technology_icon_design_202608252331.jpeg",
+      "originalName": "AI_chatbot_technology_icon_design_202608252331.jpeg",
+      "url": "/icons/services/AI_chatbot_technology_icon_design_202608252331.jpeg",
+      "type": "image/jpeg",
+      "size": 1740359,
+      "alt": "AI chatbot technology icon design 202608252331",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.132Z"
+    },
+    {
+      "id": "media_1787937148130_jh4sqc",
+      "filename": "AI_chatbot_service_icon_2K_202608252334.jpeg",
+      "originalName": "AI_chatbot_service_icon_2K_202608252334.jpeg",
+      "url": "/icons/services/AI_chatbot_service_icon_2K_202608252334.jpeg",
+      "type": "image/jpeg",
+      "size": 1652125,
+      "alt": "AI chatbot service icon 2K 202608252334",
+      "folder": "icons/services",
+      "uploadedAt": "2026-08-28T17:12:28.130Z"
     }
-  },
-  "navigation": {
-    "links": [
-      {
-        "id": "n1",
-        "name": "Home",
-        "path": "/",
-        "visible": true,
-        "order": 1
-      },
-      {
-        "id": "n2",
-        "name": "Services",
-        "path": "/services",
-        "visible": true,
-        "order": 2
-      },
-      {
-        "id": "n3",
-        "name": "About",
-        "path": "/about",
-        "visible": true,
-        "order": 3
-      },
-      {
-        "id": "n4",
-        "name": "Projects",
-        "path": "/projects",
-        "visible": true,
-        "order": 4
-      },
-      {
-        "id": "n5",
-        "name": "Reviews",
-        "path": "/reviews",
-        "visible": true,
-        "order": 5
-      },
-      {
-        "id": "n6",
-        "name": "Social Media",
-        "path": "/social-media",
-        "visible": true,
-        "order": 6
-      },
-      {
-        "id": "n7",
-        "name": "Contact",
-        "path": "/contact",
-        "visible": true,
-        "order": 7
-      }
-    ],
-    "ctaText": "Book a Call",
-    "ctaUrl": "https://calendly.com/heritagestudios"
-  },
-  "footer": {
-    "ctaHeading": "Ready to grow your brand?",
-    "ctaSub": "Let's build something extraordinary together.",
-    "ctaPrimaryText": "WhatsApp Us",
-    "ctaSecondaryText": "Book a Strategy Call",
-    "tagline": "Crafting digital assets with mathematical precision and premium creative flair.",
-    "companyLinksTitle": "Company",
-    "companyLinks": [
-      {
-        "name": "Home",
-        "path": "/"
-      },
-      {
-        "name": "About Us",
-        "path": "/about"
-      },
-      {
-        "name": "All Services",
-        "path": "/services"
-      },
-      {
-        "name": "Portfolio",
-        "path": "/projects"
-      },
-      {
-        "name": "Client Reviews",
-        "path": "/reviews"
-      },
-      {
-        "name": "Social Media",
-        "path": "/social-media"
-      },
-      {
-        "name": "Contact",
-        "path": "/contact"
-      }
-    ],
-    "servicesColumnTitle": "Services",
-    "contactColumnTitle": "Get in Touch"
-  },
+  ],
   "drafts": {},
   "revisions": [
     {
@@ -10076,6 +10321,48 @@
     "baseFontSize": "16px",
     "borderRadius": "12px",
     "containerWidth": "1280px"
+  },
+  "sessions": {
+    "sess_hu7agjida3fyv2hhxs": {
+      "username": "admin",
+      "expires": "2026-08-11T17:14:16.822Z"
+    },
+    "sess_r1r0xftzr7yqqpvh4n": {
+      "username": "admin",
+      "expires": "2026-08-12T17:43:42.125Z"
+    },
+    "sess_7eox4nta2i4kjdmo4m": {
+      "username": "admin",
+      "expires": "2026-08-13T17:56:34.927Z"
+    },
+    "sess_7dc2dd60c738dcco8f": {
+      "username": "admin",
+      "expires": "2026-08-16T17:19:28.811Z"
+    },
+    "sess_7b69yv53yvronma1m9": {
+      "username": "admin",
+      "expires": "2026-08-17T17:24:53.656Z"
+    },
+    "sess_iftk6g7xynr7tb7ns9": {
+      "username": "admin",
+      "expires": "2026-08-18T15:42:08.457Z"
+    },
+    "sess_arv12crmpcb09ip40p": {
+      "username": "admin",
+      "expires": "2026-08-18T16:15:30.919Z"
+    },
+    "sess_arhr32tv50ejxebq69": {
+      "username": "admin",
+      "expires": "2026-08-18T18:13:49.605Z"
+    },
+    "sess_r22dc9j4gzg7eygzi4": {
+      "username": "admin",
+      "expires": "2026-08-20T17:06:54.890Z"
+    },
+    "sess_l1f5khitueuzy5hoio": {
+      "username": "admin",
+      "expires": "2026-08-24T15:34:18.901Z"
+    }
   },
   "whyUs": [
     {

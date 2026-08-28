@@ -1,18 +1,44 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AdminLayoutWrapper from '@/components/AdminLayoutWrapper';
 
 export default function MediaLibraryPage() {
-  const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('All'); 
+  const [media, setMedia]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [uploading, setUploading]   = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+  const [search, setSearch]         = useState('');
+  const [filter, setFilter]         = useState('All');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [editAlt, setEditAlt] = useState('');
-  
+  const [editAlt, setEditAlt]       = useState('');
+  const [toast, setToast]           = useState('');
+  const [dragOver, setDragOver]     = useState(false);
   const fileInputRef = useRef(null);
+
+  const [syncing, setSyncing]       = useState(false);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(''), 3500);
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/admin/sync-media');
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Synced! ${data.added} new file${data.added !== 1 ? 's' : ''} added (${data.total} total)`);
+        await fetchMedia();
+      } else {
+        showToast('Sync failed', 'error');
+      }
+    } catch (err) {
+      showToast('Sync error: ' + err.message, 'error');
+    }
+    setSyncing(false);
+  };
 
   const fetchMedia = async () => {
     try {
@@ -20,81 +46,96 @@ export default function MediaLibraryPage() {
       const res = await fetch('/api/admin/media');
       if (res.ok) {
         const data = await res.json();
-        // The API returns either an array directly or { media: [...] }
-        if (Array.isArray(data)) {
-          setMedia(data);
-        } else if (data.media) {
-          setMedia(data.media);
-        } else {
-          setMedia([]);
-        }
+        setMedia(Array.isArray(data) ? data : (data.media || []));
+      } else if (res.status === 401) {
+        showToast('Session expired — please log in again', 'error');
+        setMedia([]);
       } else {
         setMedia([]);
       }
     } catch (err) {
       console.error('Failed to fetch media', err);
+      showToast('Failed to load media library', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchMedia();
-  }, []);
+  useEffect(() => { fetchMedia(); }, []);
 
-  const handleUpload = async (file) => {
-    if (!file) return;
-    try {
-      setUploading(true);
-      
-      const fakeId = Math.random().toString(36).substring(7);
-      const tempMedia = {
-        id: fakeId,
-        filename: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type,
-        size: file.size,
-        alt: '',
-        uploadedAt: new Date().toISOString()
-      };
-      
-      setMedia(prev => [tempMedia, ...prev]);
+  const handleUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const res = await fetch('/api/admin/media', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (res.ok) fetchMedia(); 
-    } catch (err) {
-      console.error('Upload failed', err);
-    } finally {
-      setUploading(false);
+    setUploading(true);
+    let successCount = 0;
+
+    for (const file of fileArray) {
+      setUploadProgress(`Uploading ${file.name}...`);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/admin/media', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          successCount++;
+        } else {
+          const err = await res.json().catch(() => ({}));
+          showToast(`Failed to upload ${file.name}: ${err.error || res.status}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Upload error: ${err.message}`, 'error');
+      }
     }
+
+    setUploading(false);
+    setUploadProgress('');
+
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    if (successCount > 0) {
+      showToast(`${successCount} file${successCount > 1 ? 's' : ''} uploaded successfully!`);
+      await fetchMedia();
+    }
+  };
+
+  const handleFileInput = (e) => {
+    handleUpload(e.target.files);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleUpload(file);
+    setDragOver(false);
+    handleUpload(e.dataTransfer.files);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (item) => {
+    if (!confirm(`Delete "${item.filename || item.originalName}"? This cannot be undone.`)) return;
     try {
-      setMedia(prev => prev.filter(m => m.id !== id));
+      // Optimistic removal
+      setMedia(prev => prev.filter(m => m.id !== item.id));
       setSelectedItem(null);
-      await fetch(`/api/admin/media?id=${id}`, {
+
+      const res = await fetch('/api/admin/media', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id: item.id }),
       });
-      fetchMedia();
+
+      if (res.ok) {
+        showToast('File deleted');
+      } else {
+        showToast('Delete failed — refreshing', 'error');
+        fetchMedia();
+      }
     } catch (err) {
-      console.error('Delete failed', err);
-      fetchMedia(); 
+      showToast('Delete error: ' + err.message, 'error');
+      fetchMedia();
     }
   };
 
@@ -102,87 +143,147 @@ export default function MediaLibraryPage() {
     if (!selectedItem) return;
     try {
       setMedia(prev => prev.map(m => m.id === selectedItem.id ? { ...m, alt: editAlt } : m));
-      await fetch('/api/admin/media', {
+      const res = await fetch('/api/admin/media', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedItem.id, alt: editAlt })
+        body: JSON.stringify({ id: selectedItem.id, alt: editAlt }),
       });
+      if (res.ok) showToast('Alt text saved');
     } catch (err) {
-      console.error('Update failed', err);
+      showToast('Failed to save alt text', 'error');
     }
   };
 
+  const handleCopyUrl = (item) => {
+    const url = item.url.startsWith('http') ? item.url : window.location.origin + item.url;
+    navigator.clipboard.writeText(url).then(() => showToast('URL copied to clipboard!'));
+  };
+
   const filteredMedia = media.filter(item => {
-    const filename = item.filename || item.name || '';
+    const filename = (item.filename || item.name || '').toLowerCase();
     const type = item.type || '';
-    if (search && !filename.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !filename.includes(search.toLowerCase())) return false;
     if (filter === 'Images' && !type.startsWith('image/')) return false;
     if (filter === 'Videos' && !type.startsWith('video/')) return false;
     if (filter === 'Documents' && !type.startsWith('application/')) return false;
     return true;
   });
 
+  const formatSize = (bytes) => {
+    if (!bytes) return '—';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <AdminLayoutWrapper>
       <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', color: '#e5e7eb' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: 0 }}>Media Library</h1>
-          
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <input 
-              type="text" 
-              placeholder="Search files..." 
+
+        {/* Toast */}
+        {toast && (
+          <div style={{
+            position: 'fixed', top: '1.5rem', right: '1.5rem', zIndex: 9999,
+            background: toast.type === 'error' ? '#ef4444' : '#059669',
+            color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontWeight: 600, fontSize: '0.9rem',
+            transition: 'opacity 0.3s'
+          }}>
+            {toast.msg}
+          </div>
+        )}
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', color: '#fff', margin: 0 }}>Media Library</h1>
+            <p style={{ margin: '0.25rem 0 0', color: '#9ca3af', fontSize: '0.875rem' }}>
+              {media.length} file{media.length !== 1 ? 's' : ''} stored
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Search files..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
-                background: '#141a26', border: '1px solid rgba(255,255,255,0.06)', 
-                color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px'
+                background: '#141a26', border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px',
+                outline: 'none', width: '200px',
               }}
             />
-            
-            <button 
+            <button
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
               style={{
-                background: '#059669', color: '#fff', border: 'none', 
-                padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer',
-                fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem'
+                background: uploading ? '#064e3b' : '#059669', color: '#fff', border: 'none',
+                padding: '0.6rem 1.25rem', borderRadius: '8px', cursor: uploading ? 'default' : 'pointer',
+                fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap',
               }}
             >
-              {uploading ? 'Uploading...' : 'Upload File'}
+              {uploading ? (uploadProgress || 'Uploading...') : '+ Upload Files'}
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              onChange={(e) => handleUpload(e.target.files?.[0])}
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              multiple
+              accept="image/*,video/*,.pdf,.svg"
+              onChange={handleFileInput}
             />
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              title="Import all icons/images from public folders into the library"
+              style={{
+                background: syncing ? '#1e3a5f' : '#1e3a8a', color: '#93c5fd',
+                border: '1px solid rgba(96,165,250,0.3)',
+                padding: '0.6rem 1rem', borderRadius: '8px', cursor: syncing ? 'default' : 'pointer',
+                fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap',
+              }}
+            >
+              {syncing ? 'Syncing...' : '↻ Sync Assets'}
+            </button>
           </div>
         </div>
 
-        <div 
-          onDragOver={(e) => e.preventDefault()}
+        {/* Drag & Drop Zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          style={{
-            border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '12px',
-            padding: '3rem', textAlign: 'center', marginBottom: '2rem',
-            background: '#0e1420', cursor: 'pointer'
-          }}
           onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: `2px dashed ${dragOver ? '#34d399' : 'rgba(255,255,255,0.12)'}`,
+            borderRadius: '12px', padding: '2.5rem', textAlign: 'center',
+            marginBottom: '1.5rem', background: dragOver ? 'rgba(52,211,153,0.05)' : '#0e1420',
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📁</div>
-          <h3 style={{ color: '#fff', margin: '0 0 0.5rem 0' }}>Drag & Drop files here</h3>
-          <p style={{ color: '#9ca3af', margin: 0 }}>or click to browse</p>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
+          <h3 style={{ color: '#fff', margin: '0 0 0.25rem 0', fontSize: '1rem' }}>
+            {dragOver ? 'Drop files here' : 'Drag & Drop files here'}
+          </h3>
+          <p style={{ color: '#9ca3af', margin: 0, fontSize: '0.85rem' }}>
+            or click to browse · supports images, SVG, PDF, video
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+        {/* Filter Tabs */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.75rem' }}>
           {['All', 'Images', 'Videos', 'Documents'].map(tab => (
-            <button 
+            <button
               key={tab}
               onClick={() => setFilter(tab)}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem',
+                background: filter === tab ? 'rgba(52,211,153,0.15)' : 'none',
+                border: filter === tab ? '1px solid rgba(52,211,153,0.3)' : '1px solid transparent',
+                cursor: 'pointer', fontSize: '0.875rem', borderRadius: '6px',
                 color: filter === tab ? '#34d399' : '#9ca3af',
-                fontWeight: filter === tab ? 600 : 400
+                fontWeight: filter === tab ? 600 : 400,
+                padding: '0.35rem 0.85rem',
+                transition: 'all 0.15s',
               }}
             >
               {tab}
@@ -190,38 +291,47 @@ export default function MediaLibraryPage() {
           ))}
         </div>
 
+        {/* Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af' }}>Loading media...</div>
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#9ca3af' }}>Loading media...</div>
         ) : filteredMedia.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', background: '#0e1420', borderRadius: '12px' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>🖼️</div>
-            <p style={{ color: '#9ca3af' }}>No media found.</p>
+          <div style={{ textAlign: 'center', padding: '4rem', background: '#0e1420', borderRadius: '12px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.4 }}>🖼️</div>
+            <p style={{ color: '#9ca3af', margin: 0 }}>
+              {search ? `No files matching "${search}"` : 'No media yet — upload your first file above'}
+            </p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
             {filteredMedia.map(item => (
-              <div 
+              <div
                 key={item.id}
                 onClick={() => { setSelectedItem(item); setEditAlt(item.alt || ''); }}
                 style={{
-                  background: '#141a26', borderRadius: '8px', overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
-                  transition: 'transform 0.2s',
+                  background: '#141a26', borderRadius: '10px', overflow: 'hidden',
+                  border: selectedItem?.id === item.id ? '2px solid #34d399' : '1px solid rgba(255,255,255,0.06)',
+                  cursor: 'pointer', transition: 'all 0.15s',
                 }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#34d399'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = selectedItem?.id === item.id ? '#34d399' : 'rgba(255,255,255,0.06)'}
               >
-                <div style={{ height: '150px', background: '#0a0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {item.type?.startsWith('image/') ? (
-                    <img src={item.url} alt={item.alt || item.filename || item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ fontSize: '3rem' }}>📄</div>
-                  )}
+                <div style={{ height: '140px', background: '#0a0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {item.type?.startsWith('image/') || item.url?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+                    <img
+                      src={item.url}
+                      alt={item.alt || item.filename}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                  ) : null}
+                  <div style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>📄</div>
                 </div>
-                <div style={{ padding: '0.75rem' }}>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ padding: '0.6rem 0.75rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#e5e7eb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {item.filename || item.name}
                   </p>
-                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#9ca3af' }}>
-                    {item.size ? `${(item.size / 1024).toFixed(1)} KB` : '0 KB'}
+                  <p style={{ margin: '0.2rem 0 0', fontSize: '0.72rem', color: '#6b7280' }}>
+                    {formatSize(item.size)}
                   </p>
                 </div>
               </div>
@@ -229,62 +339,117 @@ export default function MediaLibraryPage() {
           </div>
         )}
 
+        {/* Detail Panel */}
         {selectedItem && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 1000
-          }}>
+            background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 1000, padding: '1rem',
+          }}
+            onClick={(e) => { if (e.target === e.currentTarget) setSelectedItem(null); }}
+          >
             <div style={{
-              background: '#0e1420', width: '90%', maxWidth: '800px', borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.1)', display: 'flex', overflow: 'hidden',
-              maxHeight: '90vh'
+              background: '#0e1420', width: '90%', maxWidth: '820px', borderRadius: '14px',
+              border: '1px solid rgba(255,255,255,0.1)', display: 'flex',
+              overflow: 'hidden', maxHeight: '90vh', flexDirection: 'row',
             }}>
-              <div style={{ flex: 1, background: '#0a0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-                {selectedItem.type?.startsWith('image/') ? (
-                  <img src={selectedItem.url} alt={selectedItem.alt} style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }} />
+              {/* Preview */}
+              <div style={{ flex: 1, background: '#0a0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', minHeight: '300px' }}>
+                {selectedItem.type?.startsWith('image/') || selectedItem.url?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+                  <img
+                    src={selectedItem.url}
+                    alt={selectedItem.alt || selectedItem.filename}
+                    style={{ maxWidth: '100%', maxHeight: '55vh', objectFit: 'contain', borderRadius: '4px' }}
+                  />
                 ) : (
-                  <div style={{ fontSize: '5rem' }}>📄</div>
+                  <div style={{ fontSize: '5rem', textAlign: 'center' }}>
+                    📄<br />
+                    <span style={{ fontSize: '1rem', color: '#9ca3af' }}>{selectedItem.type}</span>
+                  </div>
                 )}
               </div>
-              <div style={{ width: '300px', padding: '1.5rem', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0, color: '#fff' }}>Details</h3>
-                  <button onClick={() => setSelectedItem(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '1.2rem' }}>&times;</button>
-                </div>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Filename</label>
-                  <div style={{ fontSize: '0.9rem', wordBreak: 'break-all' }}>{selectedItem.filename || selectedItem.name}</div>
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Type & Size</label>
-                  <div style={{ fontSize: '0.9rem' }}>{selectedItem.type} • {selectedItem.size ? `${(selectedItem.size / 1024).toFixed(1)} KB` : '0 KB'}</div>
+
+              {/* Sidebar */}
+              <div style={{ width: '300px', padding: '1.5rem', borderLeft: '1px solid rgba(255,255,255,0.06)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, color: '#fff', fontSize: '1rem' }}>File Details</h3>
+                  <button
+                    onClick={() => setSelectedItem(null)}
+                    style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '1.4rem', lineHeight: 1 }}
+                  >
+                    &times;
+                  </button>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Alt Text</label>
-                  <input 
-                    type="text" 
-                    value={editAlt} 
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filename</div>
+                  <div style={{ fontSize: '0.85rem', color: '#e5e7eb', wordBreak: 'break-all' }}>{selectedItem.filename || selectedItem.name}</div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</div>
+                  <div style={{ fontSize: '0.85rem', color: '#e5e7eb' }}>{selectedItem.type || 'unknown'}</div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Size</div>
+                  <div style={{ fontSize: '0.85rem', color: '#e5e7eb' }}>{formatSize(selectedItem.size)}</div>
+                </div>
+
+                {selectedItem.uploadedAt && (
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Uploaded</div>
+                    <div style={{ fontSize: '0.85rem', color: '#e5e7eb' }}>{new Date(selectedItem.uploadedAt).toLocaleString()}</div>
+                  </div>
+                )}
+
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>URL</div>
+                  <div style={{
+                    fontSize: '0.78rem', color: '#9ca3af', wordBreak: 'break-all',
+                    background: '#141a26', padding: '0.4rem 0.6rem', borderRadius: '4px',
+                    border: '1px solid rgba(255,255,255,0.06)'
+                  }}>
+                    {selectedItem.url}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Alt Text (SEO)</div>
+                  <input
+                    type="text"
+                    value={editAlt}
                     onChange={(e) => setEditAlt(e.target.value)}
                     onBlur={handleUpdateAlt}
-                    style={{ width: '100%', padding: '0.5rem', background: '#141a26', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                    placeholder="Describe this image..."
+                    style={{
+                      width: '100%', padding: '0.5rem 0.6rem', background: '#141a26',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff',
+                      borderRadius: '4px', fontSize: '0.85rem', boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText(window.location.origin + selectedItem.url)}
-                    style={{ padding: '0.5rem', background: '#141a26', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', cursor: 'pointer' }}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: 'auto' }}>
+                  <button
+                    onClick={() => handleCopyUrl(selectedItem)}
+                    style={{
+                      padding: '0.55rem', background: '#1f2937', color: '#e5e7eb',
+                      border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',
+                      cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500,
+                    }}
                   >
-                    Copy URL
+                    📋 Copy URL
                   </button>
-                  <button 
-                    onClick={() => handleDelete(selectedItem.id)}
-                    style={{ padding: '0.5rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  <button
+                    onClick={() => handleDelete(selectedItem)}
+                    style={{
+                      padding: '0.55rem', background: '#7f1d1d', color: '#fca5a5',
+                      border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px',
+                      cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500,
+                    }}
                   >
-                    Delete File
+                    🗑 Delete File
                   </button>
                 </div>
               </div>
