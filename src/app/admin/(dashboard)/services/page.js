@@ -254,21 +254,22 @@ export default function AdminServicesPage() {
               <textarea rows="3" className="form-input" value={form.heroDescription} onChange={e => f('heroDescription', e.target.value)} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem', marginTop: '1rem' }} className="form-grid-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1rem' }} className="form-grid-2">
               <div className="form-group">
-                <label className="form-label">Service Icon (Emoji / Symbol)</label>
-                <input className="form-input" value={form.icon} onChange={e => f('icon', e.target.value)} placeholder="💻" />
+                <MediaSelector label="Service Icon (image, SVG, or emoji)" value={form.icon} onChange={val => f('icon', val)} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Parent Service (for sub-services)</label>
-                <select className="form-input" value={form.parentService} onChange={e => f('parentService', e.target.value)}>
-                  <option value="">None (Primary Root Service)</option>
-                  {services.filter(s => s.id !== editing?.id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Starting Price Text</label>
-                <input className="form-input" value={form.startingPrice} onChange={e => f('startingPrice', e.target.value)} placeholder="Starting from PKR 25,000 / $250" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Parent Service (for sub-services)</label>
+                  <select className="form-input" value={form.parentService} onChange={e => f('parentService', e.target.value)}>
+                    <option value="">None (Primary Root Service)</option>
+                    {services.filter(s => s.id !== editing?.id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Starting Price Text</label>
+                  <input className="form-input" value={form.startingPrice} onChange={e => f('startingPrice', e.target.value)} placeholder="Starting from PKR 25,000 / $250" />
+                </div>
               </div>
             </div>
 

@@ -140,6 +140,9 @@ export default function AdminReviewsPage() {
               </div>
               <div className="form-group"><label className="form-label">Sort Order</label><input type="number" className="form-input" value={form.sortOrder} onChange={e => f('sortOrder', Number(e.target.value))} /></div>
             </div>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <MediaSelector label="Client Photo" value={form.image} onChange={val => f('image', val)} />
+            </div>
             <div className="form-group" style={{ marginTop: '1rem' }}><label className="form-label">Review Text *</label><textarea required rows="4" className="form-input" value={form.review} onChange={e => f('review', e.target.value)} placeholder="Write the client testimonial here..." /></div>
             <div className="form-group" style={{ marginTop: '1rem' }}><label className="form-label">Status</label>
               <select className="form-input" style={{ maxWidth: 200 }} value={form.published ? 'yes' : 'no'} onChange={e => f('published', e.target.value === 'yes')}>
